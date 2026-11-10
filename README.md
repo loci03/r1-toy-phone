@@ -14,3 +14,6 @@ A toy cell phone for the Rabbit R1. Tap numbers on a colorful dial pad, press **
 3. Scan `install-qr.png`.
 
 The QR holds the JSON in `creation.json`.
+
+## Voice
+The friend's lines are spoken by the app itself: first the device's system voice if it has one, then the built-in meSpeak voice (`mespeak.js`, a browser build of eSpeak, GPL, https://github.com/mikolalysenko/mespeak), and as a last resort an online voice. If you see 🔇 during a call, tap it to see a short sound check report.

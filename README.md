@@ -1,10 +1,12 @@
 # Ariel's Phone (Rabbit R1 creation)
 
-A toy cell phone for the Rabbit R1. Tap numbers on a colorful dial pad, press **Call**, hear it ring, and a friendly character (Bunny, Dino, Robot Beep, Kitty, Unicorn, Captain Star, Puppy, Mr. Penguin) answers and chats through the R1's AI and speaker. No real calls are ever placed.
+A toy cell phone for the Rabbit R1. Tap numbers on a colorful dial pad, press **Call**, hear it ring, and a friend answers and chats through the R1's AI and speaker like a real phone call. No real calls are ever placed.
 
-- Speed dial: dial a single digit 1 to 8 to reach that friend. Any longer number reaches a "surprise" friend (same number, same friend every time).
-- 👥 button or the side button opens the friends list; the scroll wheel picks, the side button calls.
-- During a call, tap a picture reply (Hi!, Tell a joke!, Sing a song!...) to answer. If the R1's web view supports speech recognition, holding the side button lets her talk instead.
+- **Who she can call:** 22 people (Grandma, Grandpa, a teacher, doctor, firefighter, chef, pilot, astronaut, princess, pirate, Santa, Tooth Fairy, mermaid, robot and more) and 25 animals (bunny, puppy, kitty, dino, unicorn, lion, elephant, monkey, owl, frog, dragon, octopus and more).
+- **Phone numbers:** people are 11, 12, 13… and animals are 51, 52, 53… (shown in the 👥 list). Any other number reaches a surprise friend, and the same number always gets the same friend.
+- **How a call goes:** the friend talks, then the screen shows "🎤 Your turn!" for about 7 seconds while Ariel talks back. The friend reacts as if they heard her and keeps chatting. If the R1 lets the page use the microphone, the friend answers as soon as she stops talking (and uses her real words if speech recognition is available). Tapping the green bar or clicking the side button also means "done talking". After 16 turns the friend says goodbye.
+- Emoji buttons (👋 😂 🎵 📖 ❤️ 🙈 🍪 😴) are optional quick replies.
+- On the R1: side button opens the list, scroll wheel picks, side button calls.
 
 ## Install on the R1
 1. Make sure the site is live at https://loci03.github.io/r1-toy-phone/

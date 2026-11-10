@@ -10,15 +10,16 @@
   html, body { width: 240px; height: 282px; overflow: hidden; background: #2b1b4a; font-family: "Arial Rounded MT Bold", "Trebuchet MS", system-ui, sans-serif; color: #fff; }
   .screen { position: absolute; inset: 0; display: none; flex-direction: column; padding: 6px; }
   .screen.on { display: flex; }
+  button { font-family: inherit; }
 
   /* Dial pad */
   #display { height: 42px; display: flex; align-items: center; gap: 4px; background: #ffffff18; border-radius: 12px; padding: 0 6px; margin-bottom: 5px; }
   #number { flex: 1; text-align: center; font-size: 24px; letter-spacing: 1px; white-space: nowrap; overflow: hidden; color: #ffe066; }
   #number.empty { font-size: 14px; color: #ffffff99; letter-spacing: 0; }
-  .mini { width: 34px; height: 32px; border: 0; border-radius: 10px; font-size: 18px; background: #ffffff22; color: #fff; }
+  .mini { width: 34px; height: 32px; border: 0; border-radius: 10px; font-size: 18px; background: #ffffff22; color: #fff; flex-shrink: 0; }
   #keys { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; flex: 1; }
   .key { border: 0; border-radius: 14px; font-size: 22px; font-weight: bold; color: #fff; transition: transform .08s; }
-  .key:active, .key.press { transform: scale(.9); }
+  .key:active { transform: scale(.9); }
   .key:nth-child(6n+1) { background: #ff6b9a; } .key:nth-child(6n+2) { background: #ffa94d; } .key:nth-child(6n+3) { background: #ffd43b; color: #5c3d00; }
   .key:nth-child(6n+4) { background: #69db7c; color: #0b4d16; } .key:nth-child(6n+5) { background: #4dabf7; } .key:nth-child(6n+6) { background: #b197fc; }
   .callrow { display: flex; justify-content: center; margin-top: 5px; }
@@ -28,11 +29,16 @@
   .red { background: #f03e3e; box-shadow: 0 3px 0 #a61e1e; }
 
   /* Contacts */
-  #contactList { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; }
-  .contact { display: flex; align-items: center; gap: 8px; border: 0; border-radius: 14px; padding: 4px 8px; height: 44px; flex-shrink: 0; background: #ffffff1c; color: #fff; font-size: 17px; text-align: left; }
-  .contact.sel { background: #ffffff44; outline: 2px solid #ffe066; }
-  .contact .em { font-size: 26px; width: 32px; text-align: center; }
-  .hdr { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; font-size: 16px; }
+  .hdr { display: flex; align-items: center; gap: 5px; margin-bottom: 5px; }
+  .tab { flex: 1; height: 32px; border: 0; border-radius: 10px; background: #ffffff1c; color: #fff; font-size: 14px; }
+  .tab.on { background: #ffe066; color: #5c3d00; font-weight: bold; }
+  #contactList { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; scrollbar-width: none; }
+  #contactList::-webkit-scrollbar { display: none; }
+  .contact { display: flex; align-items: center; gap: 8px; border: 0; border-radius: 14px; padding: 0 8px; height: 42px; flex-shrink: 0; background: #ffffff1c; color: #fff; font-size: 16px; text-align: left; }
+  .contact.sel { background: #ffffff44; outline: 2px solid #ffe066; outline-offset: -2px; }
+  .contact .em { font-size: 25px; width: 30px; text-align: center; }
+  .contact .nm { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .contact .no { font-size: 13px; color: #ffe066; }
 
   /* Ringing + call */
   .avatar { font-size: 62px; text-align: center; line-height: 1; }
@@ -41,17 +47,22 @@
   #ringScreen { justify-content: center; align-items: center; gap: 6px; }
   #ringScreen .avatar { animation: wiggle .5s infinite alternate; }
   @keyframes wiggle { from { transform: rotate(-12deg); } to { transform: rotate(12deg); } }
-  #callTop { display: flex; align-items: center; gap: 6px; height: 40px; }
-  #callTop .avatar { font-size: 34px; }
+  #callTop { display: flex; align-items: center; gap: 6px; height: 38px; }
+  #callTop .avatar { font-size: 32px; }
+  #callAvatar.talking { animation: bob .35s infinite alternate; }
+  @keyframes bob { from { transform: translateY(0) scale(1); } to { transform: translateY(-3px) scale(1.08); } }
   #callName { font-size: 16px; } #timer { font-size: 12px; color: #ffffffaa; }
   #bubble { flex: 1; background: #fff; color: #2b1b4a; border-radius: 14px; padding: 7px 9px; font-size: 15px; line-height: 1.25; overflow-y: auto; margin: 4px 0; }
-  #bubble.thinking { color: #888; }
-  #replies { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: 4px; }
-  .reply { height: 32px; border: 0; border-radius: 12px; background: #ffffff26; color: #fff; font-size: 13px; }
+  #bubble.thinking { color: #999; }
+  #turn { position: relative; height: 34px; border-radius: 12px; background: #ffffff1c; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 14px; margin-bottom: 4px; border: 0; color: #fff; width: 100%; }
+  #turn .fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: #2fb34477; }
+  #turn span { position: relative; }
+  #turn.kid { background: #2fb34433; animation: pulse 1s infinite alternate; }
+  @keyframes pulse { from { box-shadow: 0 0 0 0 #69db7c00; } to { box-shadow: 0 0 0 3px #69db7c; } }
+  #replies { display: flex; gap: 4px; margin-bottom: 4px; }
+  .reply { flex: 1; height: 30px; border: 0; border-radius: 10px; background: #ffffff1c; font-size: 18px; }
   .reply:active { background: #ffffff55; }
-  #talkHint { font-size: 11px; text-align: center; color: #ffe066; height: 14px; margin-bottom: 3px; }
-  #hangup { width: 100%; height: 38px; }
-  #heard { font-style: italic; color: #7048e8; font-size: 13px; margin-bottom: 4px; }
+  #hangup { width: 100%; height: 36px; font-size: 18px; }
 </style>
 </head>
 <body>
@@ -69,7 +80,11 @@
 
 <!-- CONTACTS -->
 <div class="screen" id="contactScreen">
-  <div class="hdr"><button class="mini" id="toDial" aria-label="Back">🔢</button><span>Who to call?</span></div>
+  <div class="hdr">
+    <button class="mini" id="toDial" aria-label="Dial pad">🔢</button>
+    <button class="tab on" data-cat="people">🧑 People</button>
+    <button class="tab" data-cat="animals">🐾 Animals</button>
+  </div>
   <div id="contactList"></div>
 </div>
 
@@ -85,7 +100,7 @@
 <div class="screen" id="callScreen">
   <div id="callTop"><div class="avatar" id="callAvatar">🐰</div><div><div id="callName">Bunny</div><div id="timer">0:00</div></div></div>
   <div id="bubble"></div>
-  <div id="talkHint"></div>
+  <button id="turn"><div class="fill" id="turnFill"></div><span id="turnText"></span></button>
   <div id="replies"></div>
   <button class="bigbtn red" id="hangup">Hang up</button>
 </div>
@@ -93,42 +108,83 @@
 <script>
 (function () {
   "use strict";
-
-  // ---------- Who can Ariel call? ----------
-  const CHARACTERS = [
-    { name: "Bunny",       emoji: "🐰", num: "1", vibe: "a bouncy, giggly bunny who loves carrots, hopping and hide-and-seek" },
-    { name: "Dino",        emoji: "🦖", num: "2", vibe: "a gentle, silly baby dinosaur who loves stomping, roaring softly and eating leaves" },
-    { name: "Robot Beep",  emoji: "🤖", num: "3", vibe: "a cheerful little robot who says 'beep boop' and loves counting, colors and shapes" },
-    { name: "Kitty",       emoji: "🐱", num: "4", vibe: "a sweet, sleepy kitty who loves naps, yarn balls and purring" },
-    { name: "Unicorn",     emoji: "🦄", num: "5", vibe: "a sparkly unicorn who loves rainbows, glitter and flying over clouds" },
-    { name: "Captain Star",emoji: "🚀", num: "6", vibe: "a friendly astronaut calling from a rocket ship, who loves stars, planets and the moon" },
-    { name: "Puppy",       emoji: "🐶", num: "7", vibe: "an excited, wiggly puppy who loves fetch, belly rubs and going on walks" },
-    { name: "Mr. Penguin", emoji: "🐧", num: "8", vibe: "a waddly penguin who loves sliding on ice, fish and snowy days" }
-  ];
   const KID = "Ariel";
 
-  const REPLIES = [
-    "👋 Hi!", "😀 I'm happy!", "🎵 Sing a song!", "📖 Tell a story!",
-    "🤪 Tell a joke!", "🐾 What's up?", "❤️ I love you!", "🙈 Play a game!"
+  // ---------- Everyone Ariel can call ----------
+  // [name, emoji, who they are]
+  const PEOPLE = [
+    ["Grandma", "👵", "a loving, cozy grandma who bakes cookies, gives big hugs and loves hearing about Ariel's day"],
+    ["Grandpa", "👴", "a funny, gentle grandpa who tells silly jokes, loves gardening and going to the park"],
+    ["Ms. Rosie", "👩‍🏫", "a kind preschool teacher who loves songs, colors, letters and counting games"],
+    ["Doctor Dot", "👩‍⚕️", "a gentle doctor who checks on teddy bears, talks about washing hands and eating veggies, and is never scary"],
+    ["Firefighter Frankie", "🧑‍🚒", "a brave, friendly firefighter with a big red truck, a ladder and a fire station dog"],
+    ["Officer Pete", "👮", "a friendly police officer who helps people and loves his bicycle and waving to kids"],
+    ["Chef Pepe", "👨‍🍳", "a jolly chef who is cooking pancakes and pizza and asks what yummy food Ariel likes"],
+    ["Pilot Polly", "👩‍✈️", "a cheerful airplane pilot calling from up in the clouds"],
+    ["Astronaut Sam", "🧑‍🚀", "an astronaut calling from a rocket ship, floating near the moon and stars"],
+    ["Farmer Joe", "👨‍🌾", "a happy farmer with cows, pigs, chickens and a big red tractor"],
+    ["Princess Lila", "👸", "a kind, playful princess who lives in a castle and loves tea parties and dancing"],
+    ["Captain Patch", "🏴‍☠️", "a silly, friendly pirate captain who says 'ahoy' and looks for treasure (shells and cookies)"],
+    ["Santa", "🎅", "a jolly Santa at the North Pole with elves and reindeer, who says 'ho ho ho'"],
+    ["Tooth Fairy", "🧚", "a tiny, sparkly tooth fairy who loves shiny teeth and brushing"],
+    ["Mail Carrier Mo", "📬", "a friendly mail carrier delivering letters and packages around the neighborhood"],
+    ["Pop Star Penny", "🎤", "a fun pop singer who loves to sing short silly songs and dance"],
+    ["Wizard Wendell", "🧙", "a goofy, kind wizard whose magic spells turn things into rainbows and bubbles"],
+    ["Super Sky", "🦸", "a superhero who helps everyone and says being kind is the best superpower"],
+    ["Ballerina Bella", "🩰", "a graceful ballerina who loves twirling, tiptoeing and music"],
+    ["Builder Bri", "👷", "a builder who drives a digger, builds houses and loves blocks"],
+    ["Mermaid Marina", "🧜‍♀️", "a mermaid who lives under the sea with fish friends and shiny shells"],
+    ["Robot Beep", "🤖", "a cheerful little robot who says 'beep boop' and loves counting, colors and shapes"]
   ];
+  const ANIMALS = [
+    ["Bunny", "🐰", "a bouncy, giggly bunny who loves carrots, hopping and hide-and-seek"],
+    ["Puppy", "🐶", "an excited, wiggly puppy who loves fetch, belly rubs and walks, and sometimes says 'woof'"],
+    ["Kitty", "🐱", "a sweet, sleepy kitty who loves naps and yarn balls, and sometimes says 'meow' and purrs"],
+    ["Dino", "🦖", "a gentle, silly baby dinosaur who loves stomping, tiny roars and eating leaves"],
+    ["Unicorn", "🦄", "a sparkly unicorn who loves rainbows, glitter and flying over clouds"],
+    ["Penguin", "🐧", "a waddly penguin who loves sliding on ice, fish and snowy days"],
+    ["Lion", "🦁", "a friendly lion with a fluffy mane and a soft, funny roar who loves sunny naps"],
+    ["Elephant", "🐘", "a big gentle elephant who sprays water with her trunk and never forgets a friend"],
+    ["Monkey", "🐵", "a cheeky monkey who loves bananas, swinging in trees and saying 'ooh ooh ah ah'"],
+    ["Owl", "🦉", "a wise, sleepy owl who says 'hoo hoo' and loves the moon and bedtime stories"],
+    ["Froggy", "🐸", "a hoppy frog who says 'ribbit', lives in a pond and loves jumping on lily pads"],
+    ["Ducky", "🦆", "a quacky duck who loves puddles, swimming and bread crumbs"],
+    ["Cow", "🐮", "a happy cow who says 'moo', lives on a farm and loves green grass"],
+    ["Piggy", "🐷", "a giggly pig who says 'oink' and loves mud puddles"],
+    ["Teddy Bear", "🐻", "a soft, huggable teddy bear who loves honey, picnics and cuddles"],
+    ["Dolphin", "🐬", "a splashy dolphin who loves jumping in waves and clicking and whistling"],
+    ["Sharky", "🦈", "a friendly little shark who only eats seaweed snacks and loves to say 'chomp chomp' as a joke"],
+    ["Bee", "🐝", "a busy bumblebee who says 'bzzz' and loves flowers and making honey"],
+    ["Butterfly", "🦋", "a colorful butterfly who flutters around gardens"],
+    ["Turtle", "🐢", "a slow, calm turtle who carries his house on his back"],
+    ["Giraffe", "🦒", "a tall giraffe who can see over trees and eats leaves from the very top"],
+    ["Panda", "🐼", "a roly-poly panda who loves bamboo and somersaults"],
+    ["Pony", "🐴", "a little pony who says 'neigh' and loves trotting and apples"],
+    ["Dragon", "🐉", "a friendly baby dragon who can only puff bubbles and loves to fly"],
+    ["Octopus", "🐙", "a silly octopus with eight arms who can give eight hugs at once"]
+  ];
+  // Phone numbers: people 11, 12, 13… and animals 51, 52, 53…
+  const toContact = (cat, base) => (c, i) => ({ cat, name: c[0], emoji: c[1], vibe: c[2], num: String(base + i) });
+  const CONTACTS = PEOPLE.map(toContact("people", 11)).concat(ANIMALS.map(toContact("animals", 51)));
 
-  // ---------- Elements ----------
+  // ---------- Helpers ----------
   const $ = (id) => document.getElementById(id);
   const screens = ["dialScreen", "contactScreen", "ringScreen", "callScreen"];
-  function show(id) { screens.forEach(s => $(s).classList.toggle("on", s === id)); current = id; }
   let current = "dialScreen";
+  function show(id) { screens.forEach(s => $(s).classList.toggle("on", s === id)); current = id; }
 
-  // ---------- Sounds (Web Audio: DTMF tones + ringback) ----------
+  // ---------- Sounds ----------
   let actx = null;
-  function ctx() { if (!actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } return actx; }
+  function ctx() { if (!actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } if (actx && actx.state === "suspended") actx.resume(); return actx; }
   const DTMF = { "1":[697,1209],"2":[697,1336],"3":[697,1477],"4":[770,1209],"5":[770,1336],"6":[770,1477],
                  "7":[852,1209],"8":[852,1336],"9":[852,1477],"*":[941,1209],"0":[941,1336],"#":[941,1477] };
   function tone(freqs, dur, vol) {
     const c = ctx(); if (!c) return;
-    const g = c.createGain(); g.gain.value = vol || 0.08; g.connect(c.destination);
+    vol = vol || 0.08;
+    const g = c.createGain(); g.connect(c.destination);
     const t = c.currentTime;
+    g.gain.setValueAtTime(vol, t); g.gain.setValueAtTime(vol, t + dur - 0.02); g.gain.linearRampToValueAtTime(0, t + dur);
     freqs.forEach(f => { const o = c.createOscillator(); o.frequency.value = f; o.connect(g); o.start(t); o.stop(t + dur); });
-    g.gain.setValueAtTime(vol || 0.08, t + dur - 0.02); g.gain.linearRampToValueAtTime(0, t + dur);
   }
   let ringTimer = null;
   function startRingback() { const ring = () => tone([440, 480], 1.2, 0.06); ring(); ringTimer = setInterval(ring, 2200); }
@@ -136,47 +192,64 @@
 
   // ---------- Dial pad ----------
   let number = "";
-  const keysEl = $("keys");
   ["1","2","3","4","5","6","7","8","9","*","0","#"].forEach(k => {
     const b = document.createElement("button"); b.className = "key"; b.textContent = k;
-    b.addEventListener("click", () => press(k)); keysEl.appendChild(b);
+    b.addEventListener("click", () => press(k)); $("keys").appendChild(b);
   });
   function renderNumber() {
     const n = $("number");
-    if (number) { n.textContent = number; n.classList.remove("empty"); }
-    else { n.textContent = "Tap numbers!"; n.classList.add("empty"); }
+    n.textContent = number || "Tap numbers!"; n.classList.toggle("empty", !number);
   }
   function press(k) { if (number.length < 12) number += k; tone(DTMF[k], 0.18); renderNumber(); }
   $("backspace").addEventListener("click", () => { number = number.slice(0, -1); renderNumber(); });
   $("callBtn").addEventListener("click", () => {
     if (!number) { tone([300], 0.15); return; }
-    // A one-digit speed dial goes to that friend; any other number gets a surprise friend.
-    let who = CHARACTERS.find(c => c.num === number);
-    if (!who) { let h = 0; for (const ch of number) h = (h * 31 + ch.charCodeAt(0)) >>> 0; who = CHARACTERS[h % CHARACTERS.length]; }
-    startCall(who, number);
+    let who = CONTACTS.find(c => c.num === number);
+    if (!who) { // any other number reaches a surprise friend (same number, same friend)
+      let h = 0; for (const ch of number) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+      who = CONTACTS[h % CONTACTS.length];
+    }
+    startCall(who);
   });
 
   // ---------- Contacts ----------
-  let sel = 0;
-  const listEl = $("contactList");
-  CHARACTERS.forEach((c, i) => {
-    const b = document.createElement("button"); b.className = "contact";
-    b.innerHTML = '<span class="em">' + c.emoji + '</span><span>' + c.name + '</span>';
-    b.addEventListener("click", () => startCall(c, c.num));
-    listEl.appendChild(b);
-  });
-  function renderSel() { [...listEl.children].forEach((el, i) => el.classList.toggle("sel", i === sel)); listEl.children[sel].scrollIntoView({ block: "nearest" }); }
-  $("toContacts").addEventListener("click", () => { show("contactScreen"); renderSel(); });
+  let cat = "people", sel = 0, shown = [];
+  function renderContacts() {
+    shown = CONTACTS.filter(c => c.cat === cat);
+    const list = $("contactList"); list.innerHTML = "";
+    shown.forEach((c, i) => {
+      const b = document.createElement("button"); b.className = "contact";
+      b.innerHTML = '<span class="em"></span><span class="nm"></span><span class="no"></span>';
+      b.children[0].textContent = c.emoji; b.children[1].textContent = c.name; b.children[2].textContent = c.num;
+      b.addEventListener("click", () => startCall(c));
+      list.appendChild(b);
+    });
+    document.querySelectorAll(".tab").forEach(t => t.classList.toggle("on", t.dataset.cat === cat));
+    renderSel();
+  }
+  function renderSel() {
+    const kids = $("contactList").children;
+    [...kids].forEach((el, i) => el.classList.toggle("sel", i === sel));
+    if (kids[sel]) kids[sel].scrollIntoView({ block: "nearest" });
+  }
+  document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => { cat = t.dataset.cat; sel = 0; renderContacts(); }));
+  $("toContacts").addEventListener("click", () => { show("contactScreen"); renderContacts(); });
   $("toDial").addEventListener("click", () => show("dialScreen"));
 
-  // ---------- Call ----------
-  let friend = null, history = [], timerInt = null, answerTimeout = null, secs = 0, waiting = false, replyTimeout = null;
+  // ---------- The call: a back-and-forth conversation ----------
+  // Flow: friend talks (R1 speaks it) → "your turn" pause while Ariel talks back
+  // → friend reacts and keeps chatting → … until she hangs up.
+  const MAX_TURNS = 16;            // friend says goodbye after this many turns
+  const KID_TURN_MS = 7000;        // how long to wait for Ariel to talk back
+  let friend = null, history = [], turns = 0, phase = "idle";
+  let timerInt = null, secs = 0, answerTimeout = null, replyTimeout = null, speakTimeout = null, turnTimeout = null, fillInt = null;
+  let heardWords = "", heardSound = false, quietCount = 0, saidBye = false, lastKid = null;
 
-  function startCall(c, num) {
-    friend = c; history = [];
+  function startCall(c) {
+    friend = c; history = []; turns = 0; saidBye = false; lastKid = null;
     $("ringAvatar").textContent = c.emoji; $("ringName").textContent = "Calling " + c.name + "…";
     show("ringScreen"); startRingback();
-    answerTimeout = setTimeout(answer, 3500);
+    answerTimeout = setTimeout(answer, 3200 + Math.random() * 1500);
   }
 
   function answer() {
@@ -184,89 +257,181 @@
     $("callAvatar").textContent = friend.emoji; $("callName").textContent = friend.name;
     secs = 0; $("timer").textContent = "0:00";
     timerInt = setInterval(() => { secs++; $("timer").textContent = Math.floor(secs / 60) + ":" + String(secs % 60).padStart(2, "0"); }, 1000);
-    renderReplies();
-    show("callScreen");
-    ask(null); // friend says hello first
+    renderReplies(); show("callScreen");
+    ask("hello");
   }
 
+  function clearTimers() {
+    [answerTimeout, replyTimeout, speakTimeout, turnTimeout].forEach(clearTimeout);
+    clearInterval(fillInt); clearInterval(timerInt); stopRingback();
+  }
   function hangUp() {
-    clearTimeout(answerTimeout); clearTimeout(replyTimeout); stopRingback(); clearInterval(timerInt); stopListening();
-    waiting = false; tone([480, 620], 0.25, 0.05);
+    clearTimers(); stopEars(); phase = "idle"; friend = null;
+    tone([480, 620], 0.25, 0.05);
     number = ""; renderNumber(); show("dialScreen");
   }
   $("hangup").addEventListener("click", hangUp);
   $("ringHang").addEventListener("click", hangUp);
 
+  function setTurn(text, kid) {
+    $("turnText").textContent = text; $("turn").classList.toggle("kid", !!kid);
+    $("turnFill").style.width = "0";
+  }
+  function setBubble(text, thinking) {
+    $("bubble").classList.toggle("thinking", !!thinking); $("bubble").textContent = text; $("bubble").scrollTop = 0;
+  }
+
+  // Little picture replies, for when she'd rather tap.
+  const REPLIES = [["👋", "Hi!"], ["😂", "Tell me a joke!"], ["🎵", "Sing me a song!"], ["📖", "Tell me a story!"], ["❤️", "I love you!"], ["🙈", "Let's play a game!"], ["🍪", "I'm hungry!"], ["😴", "I'm sleepy!"]];
   function renderReplies() {
     const r = $("replies"); r.innerHTML = "";
-    // Show 4 of the 8 picture replies, changing each turn so it stays fresh.
-    const start = (history.length * 2) % REPLIES.length;
+    const start = (turns * 4) % REPLIES.length;
     for (let i = 0; i < 4; i++) {
-      const text = REPLIES[(start + i) % REPLIES.length];
-      const b = document.createElement("button"); b.className = "reply"; b.textContent = text;
-      b.addEventListener("click", () => kidSays(text.replace(/^\S+\s/, "")));
+      const [em, text] = REPLIES[(start + i) % REPLIES.length];
+      const b = document.createElement("button"); b.className = "reply"; b.textContent = em;
+      b.addEventListener("click", () => { if (phase === "kid" || phase === "friend") endKidTurn(text); });
       r.appendChild(b);
     }
   }
 
-  function setBubble(text, thinking, heard) {
-    const b = $("bubble"); b.classList.toggle("thinking", !!thinking); b.innerHTML = "";
-    if (heard) { const h = document.createElement("div"); h.id = "heard"; h.textContent = KID + ': "' + heard + '"'; b.appendChild(h); }
-    const t = document.createElement("div"); t.textContent = text; b.appendChild(t);
+  function buildPrompt(kind, kidText) {
+    const convo = history.slice(-10).map(m => m.who + ": " + m.text).join("\n");
+    const lines = [
+      "We are playing pretend on a toy phone. You are on a phone call with " + KID + ", a young child (about 3 to 6 years old).",
+      "You are " + friend.name + ", " + friend.vibe + ". Stay in character the whole call.",
+      "Talk exactly like a real, warm phone call between friends: natural little phrases like 'Guess what?', 'Oh really?', 'Hee hee!', 'Are you still there?'.",
+      "Say only 1 to 3 very short, simple sentences a little kid understands, then end with one easy question so she can talk back.",
+      "Keep it happy, silly and kind. Nothing scary, sad, rude or grown-up. Never ask for her address, last name, school, passwords or where she is.",
+      "Never tell her to go anywhere, open anything, or keep secrets. If she sounds hurt, scared or sad, gently tell her to go find a grown-up right now.",
+      "No emojis, lists, labels or stage directions. Reply with only the words " + friend.name + " says out loud.",
+      convo ? "The call so far:\n" + convo : ""
+    ];
+    if (kind === "hello") lines.push("You just picked up the phone. Answer like a phone call ('Hello? Is that you, " + KID + "?'), be excited she called, and ask her something.");
+    else if (kind === "bye") lines.push("It's time to end the call. Say a sweet goodbye to " + KID + ", tell her it was fun to talk, and say 'bye bye!'.");
+    else if (kind === "words") lines.push(KID + " just said: \"" + kidText + "\". Answer her like a friend on the phone, then keep the chat going.");
+    else if (kind === "pretend") lines.push(KID + " just talked back to you, but this is a pretend phone so you could not hear her exact words. React as if she said something wonderful ('Oh wow, really?', 'Ha ha, that's so funny!', 'I love that!'), then keep the conversation going with a new fun little thing about your day or a new easy question. Don't repeat earlier topics.");
+    else if (kind === "quiet") lines.push(KID + " was quiet. Gently check if she's there ('Hello? Are you still there?') or share something fun, then ask an easy question.");
+    return lines.filter(Boolean).join("\n");
   }
 
-  function kidSays(text) {
-    if (!friend || current !== "callScreen" || !text) return;
-    history.push({ who: KID, text: text });
-    ask(text);
-    renderReplies();
-  }
-
-  function buildPrompt(kidText) {
-    const convo = history.slice(-8).map(m => m.who + ": " + m.text).join("\n");
-    return [
-      "You are playing pretend on a toy phone with " + KID + ", a young child (about 3 to 6 years old).",
-      "You are " + friend.name + ", " + friend.vibe + ". Stay in character the whole time.",
-      "Rules: Speak in 1 to 3 very short, simple, happy sentences that a little kid understands.",
-      "Be warm, silly and encouraging. End with one easy question or idea so " + KID + " can answer.",
-      "Never say anything scary, sad, rude or grown-up. Never ask for addresses, last names, passwords, or where she is.",
-      "Never tell her to go anywhere, open anything, or keep secrets. If she seems hurt, scared or sad, kindly tell her to go find a grown-up right away.",
-      "Do not use emojis, lists, or stage directions. Reply only with the words " + friend.name + " says out loud.",
-      convo ? "Conversation so far:\n" + convo : "",
-      kidText ? KID + " just said: \"" + kidText + "\". Reply as " + friend.name + "."
-              : "You just answered the phone. Say hi to " + KID + " excitedly and say who you are."
-    ].filter(Boolean).join("\n");
-  }
-
-  function ask(kidText) {
-    waiting = true;
-    setBubble(friend.name + " is thinking…", true, kidText);
-    const payload = { message: buildPrompt(kidText), useLLM: true, wantsR1Response: true };
+  function ask(kind, kidText) {
+    if (!friend) return;
+    phase = "waiting"; lastKid = kidText || null;
+    setBubble(friend.name + " is thinking…", true);
+    setTurn("…", false);
+    const payload = { message: buildPrompt(kind, kidText), useLLM: true, wantsR1Response: true };
+    if (kind === "bye") saidBye = true;
+    clearTimeout(replyTimeout);
     if (typeof PluginMessageHandler !== "undefined") {
       PluginMessageHandler.postMessage(JSON.stringify(payload));
-      clearTimeout(replyTimeout);
-      replyTimeout = setTimeout(() => { if (waiting) { waiting = false; setBubble("Hello? Hello? I can't hear you very well! Can you say that again?", false, kidText); } }, 20000);
+      replyTimeout = setTimeout(() => { if (phase === "waiting") onReply("Hello? Hello? The phone is a little crackly! Can you say that again?"); }, 20000);
     } else {
-      // Browser preview: no R1, so fake a friendly reply.
-      setTimeout(() => onReply(kidText ? "Wow, " + KID + "! That is so fun! What should we do next?" : "Hi " + KID + "! It's me, " + friend.name + "! How are you today?"), 900);
+      // Browser preview without an R1: fake friendly lines.
+      const fake = { hello: "Hello? Is that you, " + KID + "? Yay, you called me! How are you today?",
+                     bye: "It was so fun talking to you, " + KID + "! Bye bye!",
+                     words: "Oh, \"" + kidText + "\"! I love that! What else did you do today?",
+                     pretend: "Oh wow, really? That's so cool! Guess what, I had pancakes today! What's your favorite food?",
+                     quiet: "Hello? Are you still there? Hee hee! What's your favorite color?" };
+      replyTimeout = setTimeout(() => onReply(fake[kind]), 900);
     }
-    lastKid = kidText;
   }
-  let lastKid = null;
 
   function cleanReply(s) {
     if (typeof s !== "string") s = JSON.stringify(s);
     try { const p = JSON.parse(s); if (typeof p === "string") s = p; else if (p && (p.message || p.text || p.response)) s = p.message || p.text || p.response; } catch (e) {}
-    return s.replace(/^\s*[A-Za-z .]+:\s*/, (m) => m.toLowerCase().includes(friend.name.toLowerCase()) ? "" : m).trim();
+    s = s.trim();
+    if (friend && s.toLowerCase().startsWith(friend.name.toLowerCase() + ":")) s = s.slice(friend.name.length + 1).trim();
+    return s;
   }
 
   function onReply(text) {
-    if (!friend || current !== "callScreen") return;
-    waiting = false; clearTimeout(replyTimeout);
-    text = cleanReply(text);
-    if (!text) return;
+    if (!friend || current !== "callScreen" || phase !== "waiting") return;
+    clearTimeout(replyTimeout);
+    text = cleanReply(text); if (!text) return;
+    if (lastKid) history.push({ who: KID, text: lastKid });
     history.push({ who: friend.name, text: text });
-    setBubble(text, false, lastKid);
+    turns++;
+    setBubble(text, false);
+    // The R1 reads the reply out loud. Wait about as long as that takes, then it's Ariel's turn.
+    phase = "friend";
+    $("callAvatar").classList.add("talking");
+    setTurn("🗣️ " + friend.name + " is talking…", false);
+    const words = text.split(/\s+/).length;
+    const speakMs = 1500 + words * 400;
+    speakTimeout = setTimeout(() => {
+      $("callAvatar").classList.remove("talking");
+      if (saidBye) { setTimeout(hangUp, 800); return; }
+      startKidTurn();
+    }, speakMs);
+    renderReplies();
+  }
+
+  function startKidTurn() {
+    if (!friend) return;
+    phase = "kid"; heardWords = ""; heardSound = false;
+    setTurn("🎤 Your turn! Talk to " + friend.name, true);
+    startEars();
+    const t0 = Date.now();
+    clearInterval(fillInt);
+    fillInt = setInterval(() => { $("turnFill").style.width = Math.min(100, (Date.now() - t0) / KID_TURN_MS * 100) + "%"; }, 200);
+    turnTimeout = setTimeout(() => endKidTurn(), KID_TURN_MS);
+  }
+
+  function endKidTurn(tapped) {
+    if (!friend || !(phase === "kid" || phase === "friend")) return;
+    clearTimeout(turnTimeout); clearTimeout(speakTimeout); clearInterval(fillInt);
+    $("callAvatar").classList.remove("talking");
+    stopEars();
+    if (turns >= MAX_TURNS) return ask("bye");
+    if (tapped) return ask("words", tapped);
+    if (heardWords) return ask("words", heardWords);
+    // No mic at all → assume she pretended to talk. Mic but silence → gently check in.
+    if (!earsWork || heardSound || quietCount >= 1) { quietCount = 0; return ask("pretend"); }
+    quietCount++;
+    return ask("quiet");
+  }
+  // Tap the "your turn" bar or click the side button when she's done talking.
+  $("turn").addEventListener("click", () => endKidTurn());
+
+  // ---------- Ears: real words if the R1 supports speech recognition, otherwise a sound meter ----------
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let rec = null, stream = null, analyser = null, meterInt = null, earsWork = false, quietSince = 0;
+  function startEars() {
+    if (SR) {
+      try {
+        rec = new SR(); rec.lang = "en-US"; rec.interimResults = false;
+        rec.onresult = (e) => { const t = e.results[0][0].transcript; if (t) { heardWords = t; heardSound = true; setTimeout(() => endKidTurn(), 300); } };
+        rec.onspeechstart = () => { heardSound = true; earsWork = true; };
+        rec.onaudiostart = () => { earsWork = true; };
+        rec.onerror = () => {};
+        rec.start();
+        return;
+      } catch (e) { rec = null; }
+    }
+    // Sound meter: when she talks and then goes quiet, the friend answers right away.
+    const c = ctx();
+    if (!c || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+    const begin = (s) => {
+      stream = s; earsWork = true;
+      analyser = c.createAnalyser(); analyser.fftSize = 512;
+      c.createMediaStreamSource(s).connect(analyser);
+      const buf = new Uint8Array(analyser.fftSize);
+      quietSince = 0;
+      meterInt = setInterval(() => {
+        analyser.getByteTimeDomainData(buf);
+        let sum = 0; for (let i = 0; i < buf.length; i++) { const v = (buf[i] - 128) / 128; sum += v * v; }
+        const loud = Math.sqrt(sum / buf.length) > 0.06;
+        if (loud) { heardSound = true; quietSince = 0; }
+        else if (heardSound) { if (!quietSince) quietSince = Date.now(); else if (Date.now() - quietSince > 1300) endKidTurn(); }
+      }, 100);
+    };
+    if (stream) begin(stream);
+    else navigator.mediaDevices.getUserMedia({ audio: true }).then(s => { if (phase === "kid") begin(s); else s.getTracks().forEach(t => t.stop()); }).catch(() => {});
+  }
+  function stopEars() {
+    if (rec) { try { rec.abort(); } catch (e) {} rec = null; }
+    clearInterval(meterInt); meterInt = null; analyser = null;
+    if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
   }
 
   window.onPluginMessage = function (data) {
@@ -275,37 +440,18 @@
     if (text) onReply(text);
   };
 
-  // ---------- Talking with her voice (if the R1 web view supports speech recognition) ----------
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  let rec = null, listening = false;
-  function startListening() {
-    if (!SR || current !== "callScreen" || listening) return;
-    try {
-      rec = new SR(); rec.lang = "en-US"; rec.interimResults = false; rec.maxAlternatives = 1;
-      rec.onresult = (e) => { const t = e.results[0][0].transcript; if (t) kidSays(t); };
-      rec.onend = () => { listening = false; $("talkHint").textContent = "Hold the side button to talk"; };
-      rec.onerror = () => { listening = false; };
-      rec.start(); listening = true; $("talkHint").textContent = "🎤 Listening…";
-    } catch (e) { listening = false; }
-  }
-  function stopListening() { if (rec && listening) { try { rec.stop(); } catch (e) {} } }
-  $("talkHint").textContent = SR ? "Hold the side button to talk" : "Tap what you want to say";
-
   // ---------- R1 hardware ----------
-  window.addEventListener("scrollUp", () => {
-    if (current === "contactScreen") { sel = (sel - 1 + CHARACTERS.length) % CHARACTERS.length; renderSel(); }
-    else if (current === "callScreen") $("bubble").scrollTop -= 30;
-  });
-  window.addEventListener("scrollDown", () => {
-    if (current === "contactScreen") { sel = (sel + 1) % CHARACTERS.length; renderSel(); }
-    else if (current === "callScreen") $("bubble").scrollTop += 30;
-  });
+  function move(d) {
+    if (current === "contactScreen") { sel = (sel + d + shown.length) % shown.length; renderSel(); }
+    else if (current === "callScreen") $("bubble").scrollTop += d * 30;
+  }
+  window.addEventListener("scrollUp", () => move(-1));
+  window.addEventListener("scrollDown", () => move(1));
   window.addEventListener("sideClick", () => {
-    if (current === "dialScreen") { show("contactScreen"); renderSel(); }
-    else if (current === "contactScreen") startCall(CHARACTERS[sel], CHARACTERS[sel].num);
+    if (current === "dialScreen") { show("contactScreen"); renderContacts(); }
+    else if (current === "contactScreen") startCall(shown[sel]);
+    else if (current === "callScreen") endKidTurn(); // "I'm done talking"
   });
-  window.addEventListener("longPressStart", startListening);
-  window.addEventListener("longPressEnd", stopListening);
 
   // Keyboard for testing in a browser
   window.addEventListener("keydown", (e) => {

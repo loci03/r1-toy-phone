@@ -98,7 +98,7 @@
 
 <!-- IN CALL -->
 <div class="screen" id="callScreen">
-  <div id="callTop"><div class="avatar" id="callAvatar">🐰</div><div><div id="callName">Bunny</div><div id="timer">0:00</div></div></div>
+  <div id="callTop"><div class="avatar" id="callAvatar">🐰</div><div style="flex:1"><div id="callName">Bunny</div><div id="timer">0:00</div></div><div id="voiceInfo" style="font-size:18px"></div></div>
   <div id="bubble"></div>
   <button id="turn"><div class="fill" id="turnFill"></div><span id="turnText"></span></button>
   <div id="replies"></div>
@@ -166,6 +166,15 @@
   // Phone numbers: people 11, 12, 13… and animals 51, 52, 53…
   const toContact = (cat, base) => (c, i) => ({ cat, name: c[0], emoji: c[1], vibe: c[2], num: String(base + i) });
   const CONTACTS = PEOPLE.map(toContact("people", 11)).concat(ANIMALS.map(toContact("animals", 51)));
+  // A voice for each friend. "web" = Amazon Polly voice name for the online voice; pitch/rate for the built-in voice.
+  const SPECIAL_VOICES = { "Grandma": ["Amy", 0.9], "Grandpa": ["Brian", 0.8], "Santa": ["Matthew", 0.7], "Tooth Fairy": ["Ivy", 1.5],
+                           "Princess Lila": ["Kimberly", 1.2], "Captain Patch": ["Russell", 0.8], "Robot Beep": ["Joey", 0.6] };
+  CONTACTS.forEach((c, i) => {
+    const sp = SPECIAL_VOICES[c.name];
+    if (sp) { c.web = sp[0]; c.pitch = sp[1]; }
+    else if (c.cat === "animals") { c.web = i % 2 ? "Ivy" : "Justin"; c.pitch = 1.35; }
+    else { c.web = ["Joanna", "Matthew", "Salli", "Joey", "Kendra"][i % 5]; c.pitch = 1.05; }
+  });
 
   // ---------- Helpers ----------
   const $ = (id) => document.getElementById(id);
@@ -247,6 +256,7 @@
 
   function startCall(c) {
     friend = c; history = []; turns = 0; saidBye = false; lastKid = null;
+    unlockVoice(); // must happen inside the tap so the web view allows sound later
     $("ringAvatar").textContent = c.emoji; $("ringName").textContent = "Calling " + c.name + "…";
     show("ringScreen"); startRingback();
     answerTimeout = setTimeout(answer, 3200 + Math.random() * 1500);
@@ -266,7 +276,7 @@
     clearInterval(fillInt); clearInterval(timerInt); stopRingback();
   }
   function hangUp() {
-    clearTimers(); stopEars(); phase = "idle"; friend = null;
+    clearTimers(); stopEars(); stopSpeaking(); phase = "idle"; friend = null;
     tone([480, 620], 0.25, 0.05);
     number = ""; renderNumber(); show("dialScreen");
   }
@@ -319,7 +329,7 @@
     phase = "waiting"; lastKid = kidText || null;
     setBubble(friend.name + " is thinking…", true);
     setTurn("…", false);
-    const payload = { message: buildPrompt(kind, kidText), useLLM: true, wantsR1Response: true };
+    const payload = { message: buildPrompt(kind, kidText), useLLM: true, wantsR1Response: false };
     if (kind === "bye") saidBye = true;
     clearTimeout(replyTimeout);
     if (typeof PluginMessageHandler !== "undefined") {
@@ -356,13 +366,13 @@
     phase = "friend";
     $("callAvatar").classList.add("talking");
     setTurn("🗣️ " + friend.name + " is talking…", false);
-    const words = text.split(/\s+/).length;
-    const speakMs = 1500 + words * 400;
-    speakTimeout = setTimeout(() => {
+    const who = friend;
+    speak(text, who, () => {
+      if (friend !== who || phase !== "friend") return;
       $("callAvatar").classList.remove("talking");
       if (saidBye) { setTimeout(hangUp, 800); return; }
       startKidTurn();
-    }, speakMs);
+    });
     renderReplies();
   }
 
@@ -381,7 +391,7 @@
     if (!friend || !(phase === "kid" || phase === "friend")) return;
     clearTimeout(turnTimeout); clearTimeout(speakTimeout); clearInterval(fillInt);
     $("callAvatar").classList.remove("talking");
-    stopEars();
+    stopEars(); stopSpeaking();
     if (turns >= MAX_TURNS) return ask("bye");
     if (tapped) return ask("words", tapped);
     if (heardWords) return ask("words", heardWords);
@@ -433,6 +443,87 @@
     clearInterval(meterInt); meterInt = null; analyser = null;
     if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
   }
+
+  // ---------- Voice: the app speaks the friend's words itself ----------
+  // 1) the device's built-in voice (speechSynthesis), 2) an online voice played as audio.
+  // Whichever works first is remembered for the rest of the session.
+  const synth = window.speechSynthesis;
+  let engine = null;            // "synth" | "web" | "none" once known
+  let synthBroken = !synth, webBroken = false;
+  const player = new Audio(); player.preload = "auto";
+  const SILENT = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=";
+  let speakToken = 0;
+  function unlockVoice() {
+    try { player.src = SILENT; const p = player.play(); if (p && p.catch) p.catch(() => {}); } catch (e) {}
+    try { if (synth) { const u = new SpeechSynthesisUtterance(" "); u.volume = 0; synth.speak(u); } } catch (e) {}
+  }
+  function stopSpeaking() {
+    speakToken++;
+    try { if (synth) synth.cancel(); } catch (e) {}
+    try { player.pause(); player.onended = player.onerror = player.onplaying = null; } catch (e) {}
+  }
+  function chunks(text) { // short pieces (online voices limit the text length)
+    const out = []; let cur = "";
+    (text.match(/[^.!?]+[.!?]*/g) || [text]).forEach(sn => {
+      sn = sn.trim(); if (!sn) return;
+      if ((cur + " " + sn).length > 180) { if (cur) out.push(cur); cur = sn.slice(0, 180); } else cur = (cur + " " + sn).trim();
+    });
+    if (cur) out.push(cur); return out;
+  }
+  function speak(text, who, done) {
+    stopSpeaking();
+    const token = ++speakToken;
+    const words = text.split(/\s+/).length;
+    let finished = false;
+    const fin = () => { if (finished || token !== speakToken) return; finished = true; clearTimeout(safety); done(); };
+    const safety = setTimeout(fin, 9000 + words * 700); // never get stuck
+    const noVoice = () => { engine = "none"; $("voiceInfo").textContent = "🔇"; setTimeout(fin, 1500 + words * 400); };
+    const tryWeb = () => (webBroken ? noVoice() : speakWeb(text, who, token, fin, () => { webBroken = true; noVoice(); }));
+    if (engine === "web") return tryWeb();
+    if (engine === "none") { synthBroken = false; webBroken = false; } // try again on each call in case it was a hiccup
+    if (synthBroken) return tryWeb();
+    speakSynth(text, who, token, fin, () => { synthBroken = true; tryWeb(); });
+  }
+  function speakSynth(text, who, token, fin, fail) {
+    let started = false;
+    try {
+      synth.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      const voices = synth.getVoices() || [];
+      const v = voices.find(x => /^en(-|_)US/i.test(x.lang)) || voices.find(x => /^en/i.test(x.lang));
+      if (v) u.voice = v;
+      u.lang = "en-US"; u.pitch = Math.min(2, who.pitch || 1); u.rate = 0.95; u.volume = 1;
+      u.onstart = () => { started = true; engine = "synth"; $("voiceInfo").textContent = ""; };
+      u.onend = () => { if (token === speakToken) fin(); };
+      u.onerror = () => { if (!started && token === speakToken) fail(); else fin(); };
+      synth.speak(u);
+      setTimeout(() => { if (!started && token === speakToken) { try { synth.cancel(); } catch (e) {} fail(); } }, 2500);
+    } catch (e) { fail(); }
+  }
+  function speakWeb(text, who, token, fin, fail) {
+    const parts = chunks(text);
+    const urlsFor = (t) => [
+      "https://api.streamelements.com/kappa/v2/speech?voice=" + encodeURIComponent(who.web || "Ivy") + "&text=" + encodeURIComponent(t),
+      "https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=en&q=" + encodeURIComponent(t)
+    ];
+    let idx = 0, provider = webProvider, anyPlayed = false;
+    const playPart = () => {
+      if (token !== speakToken) return;
+      if (idx >= parts.length) return fin();
+      const urls = urlsFor(parts[idx]);
+      if (provider >= urls.length) return anyPlayed ? fin() : fail();
+      let ok = false;
+      const next = () => { if (ok || token !== speakToken) return; ok = true; provider++; playPart(); };
+      const guard = setTimeout(next, 7000);
+      player.onplaying = () => { clearTimeout(guard); anyPlayed = true; webProvider = provider; engine = "web"; $("voiceInfo").textContent = ""; };
+      player.onended = () => { clearTimeout(guard); if (token !== speakToken) return; ok = true; idx++; playPart(); };
+      player.onerror = () => { clearTimeout(guard); next(); };
+      player.src = urls[provider];
+      const p = player.play(); if (p && p.catch) p.catch(() => { clearTimeout(guard); next(); });
+    };
+    playPart();
+  }
+  let webProvider = 0;
 
   window.onPluginMessage = function (data) {
     if (!data) return;

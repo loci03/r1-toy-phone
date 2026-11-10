@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=240, height=282, initial-scale=1, user-scalable=no">
+<title>Ariel's Colors</title>
+<link rel="icon" href="icon.png">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+  html, body { width: 240px; height: 282px; overflow: hidden; background: #fff8ec; font-family: system-ui, sans-serif; overscroll-behavior: none; }
+  #pic { position: absolute; left: 0; top: 0; width: 240px; height: 196px; display: block; touch-action: none; background: #fff; }
+  #pic .fill { stroke: none; transition: fill .25s; }
+  #pic .line { fill: none; stroke: #2b2b2b; stroke-width: 3.5; stroke-linejoin: round; stroke-linecap: round; pointer-events: none; }
+  #pic .line.bg { stroke: none; }
+  #pic .k { fill: #2b2b2b; stroke: none; pointer-events: none; }
+  #pic .s { fill: none; stroke: #2b2b2b; stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+  #pic .scrib { pointer-events: none; }
+  #pic .scrib path { fill: none; stroke-width: 13; stroke-linecap: round; stroke-linejoin: round; }
+
+  #bar { position: absolute; left: 0; top: 196px; width: 240px; height: 86px; padding: 4px; display: grid;
+         grid-template-columns: repeat(4, 1fr) 44px; grid-template-rows: 1fr 1fr; gap: 4px; background: #fff3d6; border-top: 3px solid #2b2b2b; }
+  .sw { border: 0; border-radius: 18px; box-shadow: inset 0 -4px 0 #0002; transition: transform .1s; }
+  .sw.on { outline: 4px solid #2b2b2b; outline-offset: -4px; transform: scale(1.06); }
+  .sw:active, .tool:active { transform: scale(.9); }
+  .tool { border: 0; border-radius: 18px; background: #fff; box-shadow: inset 0 -4px 0 #0002; font-size: 22px; line-height: 1; transition: transform .1s; }
+
+  #party { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+  .conf { position: absolute; font-size: 26px; animation: fall 2.2s ease-in forwards; }
+  @keyframes fall { from { transform: translateY(-40px) rotate(0); opacity: 1; } to { transform: translateY(330px) rotate(540deg); opacity: .8; } }
+  #pic.wipe { animation: wipe .5s; }
+  @keyframes wipe { 0% { transform: none; } 30% { transform: rotate(-3deg) scale(.96); } 60% { transform: rotate(3deg) scale(.96); } 100% { transform: none; } }
+  #pic.swap { animation: swap .35s; }
+  @keyframes swap { from { transform: translateX(60px); opacity: 0; } to { transform: none; opacity: 1; } }
+</style>
+</head>
+<body>
+<svg id="pic" viewBox="0 0 240 196" xmlns="http://www.w3.org/2000/svg"></svg>
+<div id="bar"></div>
+<div id="party"></div>
+
+<script>
+(() => {
+  const NS = "http://www.w3.org/2000/svg";
+  const W = "#ffffff";
+  const COLORS = ["#ff4d4d", "#ff9f1c", "#ffe14d", "#4cd964", "#3b9cff", "#a66cff", "#ff7ec8", "#9b6a3c"];
+
+  // ---- Pictures: [kind, svg] where kind r = colorable region, k = black detail, s = line detail. First item is the background.
+  const ring = (cx, cy, n, dist, fn) => Array.from({ length: n }, (_, i) => { const a = i * 2 * Math.PI / n - Math.PI / 2; return fn(cx + dist * Math.cos(a), cy + dist * Math.sin(a), a); });
+  const tri = (pts) => `<polygon points="${pts.map(p => p.map(v => v.toFixed(1)).join(",")).join(" ")}"/>`;
+  const BG = ["r", `<rect x="0" y="0" width="240" height="196"/>`];
+
+  const PICS = [
+    // Sun
+    [BG,
+     ...ring(120, 96, 8, 0, (x, y, a) => ["r", tri([[x + 52 * Math.cos(a - .22), y + 52 * Math.sin(a - .22)], [x + 86 * Math.cos(a), y + 86 * Math.sin(a)], [x + 52 * Math.cos(a + .22), y + 52 * Math.sin(a + .22)]])]),
+     ["r", `<circle cx="120" cy="96" r="48"/>`],
+     ["k", `<circle cx="104" cy="86" r="5"/>`], ["k", `<circle cx="136" cy="86" r="5"/>`],
+     ["s", `<path d="M100 106 Q120 126 140 106"/>`],
+     ["r", `<circle cx="96" cy="104" r="7"/>`], ["r", `<circle cx="144" cy="104" r="7"/>`]],
+    // Fish
+    [BG,
+     ["r", `<rect x="0" y="174" width="240" height="22"/>`],
+     ["r", `<path d="M22 196 q-12 -25 0 -50 q12 -25 0 -45 h12 q12 20 0 45 q-12 25 0 50z"/>`],
+     ["r", `<circle cx="34" cy="40" r="10"/>`], ["r", `<circle cx="50" cy="16" r="7"/>`],
+     ["r", tri([[160, 98], [218, 58], [218, 138]])],
+     ["r", `<path d="M92 62 Q112 22 146 64 Z"/>`],
+     ["r", `<ellipse cx="112" cy="98" rx="62" ry="42"/>`],
+     ["r", `<path d="M112 108 Q128 96 144 108 Q128 122 112 108 Z"/>`],
+     ["r", `<circle cx="80" cy="88" r="11"/>`], ["k", `<circle cx="78" cy="88" r="5"/>`],
+     ["s", `<path d="M54 106 q8 5 14 0"/>`]],
+    // House
+    [BG,
+     ["r", `<rect x="0" y="160" width="240" height="36"/>`],
+     ["r", `<circle cx="206" cy="32" r="20"/>`],
+     ["r", `<rect x="150" y="38" width="16" height="36"/>`],
+     ["r", `<rect x="62" y="88" width="116" height="76"/>`],
+     ["r", tri([[48, 92], [120, 28], [192, 92]])],
+     ["r", `<rect x="106" y="118" width="28" height="46" rx="3"/>`], ["k", `<circle cx="128" cy="142" r="2.5"/>`],
+     ["r", `<rect x="74" y="104" width="24" height="22"/>`], ["s", `<path d="M86 104 v22 M74 115 h24"/>`],
+     ["r", `<rect x="142" y="104" width="24" height="22"/>`], ["s", `<path d="M154 104 v22 M142 115 h24"/>`]],
+    // Flower
+    [BG,
+     ["r", `<rect x="0" y="168" width="240" height="28"/>`],
+     ["r", `<rect x="115" y="90" width="10" height="82"/>`],
+     ["r", `<path d="M118 150 Q85 122 66 138 Q88 168 118 150Z"/>`],
+     ["r", `<path d="M122 134 Q155 106 174 122 Q152 152 122 134Z"/>`],
+     ...ring(120, 66, 6, 32, (x, y) => ["r", `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="23"/>`]),
+     ["r", `<circle cx="120" cy="66" r="21"/>`],
+     ["k", `<circle cx="112" cy="62" r="3"/>`], ["k", `<circle cx="128" cy="62" r="3"/>`],
+     ["s", `<path d="M112 72 q8 7 16 0"/>`]],
+    // Cat
+    [BG,
+     ["r", tri([[56, 74], [68, 12], [112, 50]])], ["r", tri([[184, 74], [172, 12], [128, 50]])],
+     ["r", tri([[72, 58], [74, 30], [96, 48]])], ["r", tri([[168, 58], [166, 30], [144, 48]])],
+     ["r", `<ellipse cx="120" cy="106" rx="74" ry="64"/>`],
+     ["r", `<ellipse cx="92" cy="96" rx="13" ry="15"/>`], ["k", `<ellipse cx="92" cy="98" rx="5" ry="9"/>`],
+     ["r", `<ellipse cx="148" cy="96" rx="13" ry="15"/>`], ["k", `<ellipse cx="148" cy="98" rx="5" ry="9"/>`],
+     ["r", tri([[110, 120], [130, 120], [120, 131]])],
+     ["s", `<path d="M120 131 q-6 12 -17 5 M120 131 q6 12 17 5 M84 124 h-44 M84 133 l-42 9 M156 124 h44 M156 133 l42 9"/>`]],
+    // Car
+    [BG,
+     ["r", `<rect x="0" y="160" width="240" height="36"/>`],
+     ["r", `<circle cx="40" cy="34" r="20"/>`],
+     ["r", `<path d="M70 90 L92 50 H156 L182 90 Z"/>`],
+     ["r", tri([[86, 88], [100, 60], [118, 60], [118, 88]])], ["r", tri([[128, 60], [150, 60], [166, 88], [128, 88]])],
+     ["r", `<rect x="24" y="86" width="192" height="54" rx="14"/>`],
+     ["r", `<circle cx="204" cy="104" r="7"/>`],
+     ["r", `<circle cx="72" cy="142" r="22"/>`], ["r", `<circle cx="72" cy="142" r="9"/>`],
+     ["r", `<circle cx="168" cy="142" r="22"/>`], ["r", `<circle cx="168" cy="142" r="9"/>`]],
+    // Balloons
+    [BG,
+     ["s", `<path d="M80 122 Q92 160 120 184 M120 106 Q114 150 120 184 M164 120 Q150 160 120 184"/>`],
+     ["r", `<rect x="0" y="182" width="240" height="14"/>`],
+     ["r", `<ellipse cx="78" cy="82" rx="34" ry="40"/>`],
+     ["r", `<ellipse cx="164" cy="80" rx="34" ry="40"/>`],
+     ["r", `<ellipse cx="120" cy="64" rx="34" ry="42"/>`]],
+    // Butterfly
+    [BG,
+     ["r", `<ellipse cx="78" cy="72" rx="46" ry="42"/>`], ["r", `<ellipse cx="162" cy="72" rx="46" ry="42"/>`],
+     ["r", `<ellipse cx="88" cy="140" rx="34" ry="32"/>`], ["r", `<ellipse cx="152" cy="140" rx="34" ry="32"/>`],
+     ["r", `<circle cx="72" cy="68" r="15"/>`], ["r", `<circle cx="168" cy="68" r="15"/>`],
+     ["r", `<circle cx="86" cy="142" r="11"/>`], ["r", `<circle cx="154" cy="142" r="11"/>`],
+     ["r", `<ellipse cx="120" cy="110" rx="11" ry="58"/>`],
+     ["s", `<path d="M114 38 Q102 12 92 14 M126 38 Q138 12 148 14"/>`],
+     ["k", `<circle cx="92" cy="14" r="5"/>`], ["k", `<circle cx="148" cy="14" r="5"/>`],
+     ["r", `<circle cx="120" cy="48" r="15"/>`],
+     ["k", `<circle cx="114" cy="46" r="2.5"/>`], ["k", `<circle cx="126" cy="46" r="2.5"/>`]],
+    // Duck
+    [BG,
+     ["r", `<rect x="0" y="152" width="240" height="44"/>`],
+     ["r", tri([[184, 126], [216, 104], [204, 148]])],
+     ["r", `<ellipse cx="128" cy="140" rx="70" ry="36"/>`],
+     ["r", tri([[58, 80], [20, 92], [58, 104]])],
+     ["r", `<circle cx="80" cy="84" r="31"/>`], ["k", `<circle cx="72" cy="76" r="5"/>`],
+     ["r", `<path d="M108 134 Q140 108 172 134 Q140 160 108 134Z"/>`]],
+    // Ice cream
+    [BG,
+     ["r", tri([[84, 112], [156, 112], [120, 192]])],
+     ["r", `<circle cx="120" cy="20" r="11"/>`], ["s", `<path d="M120 10 q4 -8 12 -8"/>`],
+     ["r", `<circle cx="120" cy="56" r="30"/>`],
+     ["r", `<path d="M80 108 A40 40 0 1 1 160 108 Q150 122 140 108 Q130 122 120 108 Q110 122 100 108 Q90 122 80 108Z"/>`]],
+  ];
+
+  // ---- State
+  const KEY = "arielColors:v1";
+  let st = { pic: 0, color: 0, pics: {} };
+  try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.pics) st = s; } catch (e) {}
+  if (!(st.pic >= 0 && st.pic < PICS.length)) st.pic = 0;
+  if (!(st.color >= 0 && st.color < COLORS.length)) st.color = 0;
+  const cur = () => (st.pics[st.pic] = st.pics[st.pic] || { f: {}, s: [] });
+  let saveT = 0;
+  const save = () => { clearTimeout(saveT); saveT = setTimeout(() => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} }, 300); };
+
+  // ---- Sound (WebAudio, quiet and optional)
+  let ac = null;
+  function tone(freq, t0, dur, type = "sine", vol = .18, glide = 0) {
+    try {
+      ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+      if (ac.state === "suspended") ac.resume();
+      const o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime + t0;
+      o.type = type; o.frequency.setValueAtTime(freq, t);
+      if (glide) o.frequency.exponentialRampToValueAtTime(freq * glide, t + dur);
+      g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + dur);
+      o.connect(g).connect(ac.destination); o.start(t); o.stop(t + dur + .02);
+    } catch (e) {}
+  }
+  const NOTES = [523, 587, 659, 698, 784, 880, 988, 1047];
+  const popSound = () => tone(330, 0, .18, "sine", .22, 2.4);
+  const colorSound = (i) => tone(NOTES[i], 0, .2, "triangle", .16);
+  const yay = () => [523, 659, 784, 1047, 784, 1047].forEach((f, i) => tone(f, i * .11, .22, "triangle", .16));
+
+  // ---- Build the picture
+  const svg = document.getElementById("pic");
+  let regions = [];   // [{fill, scrib}]
+  function el(markup) { const t = document.createElementNS(NS, "svg"); t.innerHTML = markup; return t.firstElementChild; }
+
+  function render() {
+    svg.innerHTML = "";
+    regions = [];
+    const defs = document.createElementNS(NS, "defs"); svg.appendChild(defs);
+    const p = cur();
+    PICS[st.pic].forEach(([kind, markup], i) => {
+      if (kind !== "r") { const d = el(markup); d.setAttribute("class", kind); svg.appendChild(d); return; }
+      const ri = regions.length;
+      const fill = el(markup); fill.setAttribute("class", "fill"); fill.dataset.r = ri;
+      fill.setAttribute("fill", p.f[ri] || W);
+      const cp = document.createElementNS(NS, "clipPath"); cp.id = "c" + ri; cp.appendChild(el(markup)); defs.appendChild(cp);
+      const scrib = document.createElementNS(NS, "g"); scrib.setAttribute("class", "scrib"); scrib.setAttribute("clip-path", `url(#c${ri})`);
+      const line = el(markup); line.setAttribute("class", ri === 0 ? "line bg" : "line");
+      svg.append(fill, scrib, line);
+      regions.push({ fill, scrib });
+    });
+    p.s.forEach(([ri, c, d]) => regions[ri] && addPath(ri, c, d));
+  }
+  function addPath(ri, color, d) {
+    const path = document.createElementNS(NS, "path");
+    path.setAttribute("stroke", color); path.setAttribute("d", d);
+    regions[ri].scrib.appendChild(path); return path;
+  }
+
+  // ---- Touch: tap = fill the shape, drag = crayon (stays inside the shape you started in)
+  let drag = null;
+  const toSvg = (e) => { const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; const m = svg.getScreenCTM(); const q = m ? pt.matrixTransform(m.inverse()) : pt; return [Math.round(q.x), Math.round(q.y)]; };
+  function regionAt(x, y) {
+    const t = document.elementFromPoint(x, y);
+    return t && t.classList && t.classList.contains("fill") ? +t.dataset.r : 0;
+  }
+  svg.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    try { svg.setPointerCapture(e.pointerId); } catch (_) {}
+    drag = { id: e.pointerId, x: e.clientX, y: e.clientY, ri: regionAt(e.clientX, e.clientY), path: null, d: "", start: toSvg(e) };
+  });
+  svg.addEventListener("pointermove", (e) => {
+    if (!drag || e.pointerId !== drag.id) return;
+    const [x, y] = toSvg(e);
+    if (!drag.path) {
+      if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 6) return;
+      drag.d = `M${drag.start[0]} ${drag.start[1]}L${x} ${y}`;
+      drag.path = addPath(drag.ri, COLORS[st.color], drag.d);
+    } else {
+      drag.d += `L${x} ${y}`; drag.path.setAttribute("d", drag.d);
+    }
+  });
+  function endDrag(e) {
+    if (!drag || e.pointerId !== drag.id) return;
+    const p = cur();
+    if (drag.path) { p.s.push([drag.ri, COLORS[st.color], drag.d]); save(); }
+    else if (e.type === "pointerup") fillRegion(drag.ri);
+    drag = null;
+  }
+  svg.addEventListener("pointerup", endDrag);
+  svg.addEventListener("pointercancel", endDrag);
+
+  let celebrated = false;
+  function fillRegion(ri) {
+    const p = cur(), c = COLORS[st.color];
+    p.f[ri] = c; regions[ri].fill.setAttribute("fill", c);
+    popSound(); save();
+    const done = regions.every((_, i) => i === 0 || (p.f[i] && p.f[i] !== W));
+    if (done && !celebrated) { celebrated = true; party(); }
+  }
+  function party() {
+    yay();
+    const box = document.getElementById("party");
+    const bits = ["⭐", "🎉", "💖", "🌈", "✨", "🎈"];
+    for (let i = 0; i < 18; i++) {
+      const s = document.createElement("div"); s.className = "conf";
+      s.textContent = bits[i % bits.length];
+      s.style.left = (Math.random() * 220) + "px"; s.style.animationDelay = (Math.random() * .6) + "s";
+      box.appendChild(s); setTimeout(() => s.remove(), 3000);
+    }
+  }
+  function isDone() { const p = cur(); return regions.every((_, i) => i === 0 || (p.f[i] && p.f[i] !== W)); }
+
+  // ---- Palette bar
+  const bar = document.getElementById("bar");
+  const sws = COLORS.map((c, i) => {
+    const b = document.createElement("button"); b.className = "sw"; b.style.background = c;
+    b.style.gridRow = i < 4 ? 1 : 2; b.style.gridColumn = (i % 4) + 1;
+    b.setAttribute("aria-label", "color " + (i + 1));
+    b.addEventListener("pointerdown", (e) => { e.preventDefault(); pick(i); });
+    bar.appendChild(b); return b;
+  });
+  const next = document.createElement("button"); next.className = "tool"; next.textContent = "➡️"; next.style.gridRow = 1; next.style.gridColumn = 5;
+  next.setAttribute("aria-label", "next picture");
+  next.addEventListener("click", () => go(1));
+  const wipe = document.createElement("button"); wipe.className = "tool"; wipe.textContent = "🧽"; wipe.style.gridRow = 2; wipe.style.gridColumn = 5;
+  wipe.setAttribute("aria-label", "clean picture");
+  wipe.addEventListener("click", clean);
+  bar.append(next, wipe);
+
+  function pick(i) {
+    st.color = (i + COLORS.length) % COLORS.length;
+    sws.forEach((b, j) => b.classList.toggle("on", j === st.color));
+    colorSound(st.color); save();
+  }
+  function go(dir) {
+    st.pic = (st.pic + dir + PICS.length) % PICS.length;
+    render(); celebrated = isDone(); save();
+    svg.classList.remove("swap"); svg.getBoundingClientRect(); svg.classList.add("swap");
+    tone(dir > 0 ? 440 : 392, 0, .15, "triangle", .14, 1.5);
+  }
+  function clean() {
+    st.pics[st.pic] = { f: {}, s: [] };
+    render(); celebrated = false; save();
+    svg.classList.remove("wipe"); svg.getBoundingClientRect(); svg.classList.add("wipe");
+    tone(900, 0, .35, "sawtooth", .05, .3);
+  }
+
+  // ---- R1 hardware: scroll wheel changes color, side button shows the next picture
+  window.addEventListener("scrollUp", () => pick(st.color - 1));
+  window.addEventListener("scrollDown", () => pick(st.color + 1));
+  window.addEventListener("sideClick", () => go(1));
+  // Keyboard for testing in a desktop browser
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowUp") pick(st.color - 1);
+    else if (e.key === "ArrowDown") pick(st.color + 1);
+    else if (e.key === " " || e.key === "Enter" || e.key === "ArrowRight") go(1);
+    else if (e.key === "ArrowLeft") go(-1);
+  });
+  document.addEventListener("contextmenu", (e) => e.preventDefault());
+
+  render(); celebrated = isDone();
+  sws[st.color].classList.add("on");
+})();
+</script>
+</body>
+</html>

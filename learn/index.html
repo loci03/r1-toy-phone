@@ -130,18 +130,15 @@
     { name: "white", c: "#ffffff" }
   ];
   const ANIMALS = [
-    { name: "cow", e: "🐄", say: "Moo! Moo!" }, { name: "dog", e: "🐶", say: "Woof woof!" }, { name: "cat", e: "🐱", say: "Meow!" },
-    { name: "duck", e: "🦆", say: "Quack quack!" }, { name: "pig", e: "🐷", say: "Oink oink!" }, { name: "sheep", e: "🐑", say: "Baa baa!" },
-    { name: "horse", e: "🐴", say: "Neigh!" }, { name: "lion", e: "🦁", say: "Roar!" }, { name: "frog", e: "🐸", say: "Ribbit ribbit!" },
-    { name: "chicken", e: "🐔", say: "Cluck cluck!" }, { name: "monkey", e: "🐵", say: "Ooh ooh, ah ah!" }, { name: "owl", e: "🦉", say: "Hoo hoo!" },
-    { name: "bee", e: "🐝", say: "Buzz buzz!" }, { name: "fish", e: "🐟", say: "Blub blub!" }, { name: "bird", e: "🐦", say: "Tweet tweet!" },
-    { name: "elephant", e: "🐘", say: "Toot toot!" }
+    { name: "cow", e: "🐄" }, { name: "dog", e: "🐶" }, { name: "cat", e: "🐱" }, { name: "duck", e: "🦆" },
+    { name: "pig", e: "🐷" }, { name: "sheep", e: "🐑" }, { name: "horse", e: "🐴" }, { name: "lion", e: "🦁" },
+    { name: "frog", e: "🐸" }, { name: "chicken", e: "🐔" }, { name: "monkey", e: "🐵" }, { name: "owl", e: "🦉" },
+    { name: "elephant", e: "🐘" }, { name: "bird", e: "🐦" }, { name: "bee", e: "🐝" }, { name: "tiger", e: "🐯" },
+    { name: "dinosaur", e: "🦖" }
   ];
   const THINGS = ["🍎", "🐟", "🎈", "🦆", "🍓", "🐞", "🌸", "🍌", "🚗", "🧸", "🍪"];
-  const NUM_WORDS = ["zero", "one", "two", "three", "four", "five"];
   const NUMS = [1, 2, 3, 4, 5].map(n => ({ name: String(n), n }));
   const CARD_BG = { numbers: ["#fff3d6", "#ffe9f4", "#e8f6ff", "#eaffea"], animals: ["#e3f6ff", "#fff3d6", "#f1eaff", "#eaffea"] };
-  const QUESTION = { colors: "What color is it?", numbers: "How many?", animals: "Who is this?" };
   const GOAL = 5;
 
   // ---------- sounds (Web Audio) ----------
@@ -169,56 +166,35 @@
     fanfare: () => [[523,0],[523,.15],[523,.3],[659,.45],[784,.7],[659,.95],[784,1.1],[1047,1.3]].forEach(([f,t]) => { tone(f, t, .3, "triangle", .2); tone(f / 2, t, .3, "sine", .1); })
   };
 
-  // ---------- voice ----------
-  // 1) the device's system voice, 2) meSpeak (shipped with the app, works offline), else stay quiet.
-  const synth = window.speechSynthesis;
-  let engine = null, synthBroken = !synth, localSrc = null, speakTok = 0;
-  (function loadMeSpeak() { // shared copy at the repo root, fall back to a local copy
-    const add = (src, next) => { const s = document.createElement("script"); s.src = src; s.defer = true; if (next) s.onerror = next; document.head.appendChild(s); };
-    add("../mespeak.js", () => add("mespeak.js"));
-  })();
-  function stopVoice() {
-    speakTok++;
-    try { synth && synth.cancel(); } catch (e) {}
-    try { if (localSrc) { localSrc.onended = null; localSrc.stop(); localSrc = null; } } catch (e) {}
+  // ---------- voice + animal sounds: recorded clips (audio/), played through Web Audio ----------
+  const clipCache = {};
+  function loadClip(name) {
+    if (!clipCache[name]) {
+      clipCache[name] = fetch("audio/" + name + ".mp3")
+        .then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+        .then(buf => new Promise((res, rej) => { const c = ctx(); if (!c) return rej(new Error("no audio")); c.decodeAudioData(buf, res, rej); }))
+        .catch(e => { delete clipCache[name]; throw e; });
+    }
+    return clipCache[name];
   }
-  function speak(text) {
-    stopVoice();
-    const tok = speakTok, words = text.split(/\s+/).length;
-    return new Promise(res => {
-      let done = false;
-      const fin = () => { if (!done) { done = true; clearTimeout(safety); res(); } };
-      const safety = setTimeout(fin, 2500 + words * 600);
-      const local = () => {
-        const c = ctx();
-        if (!window.meSpeak || !c || tok !== speakTok) return setTimeout(fin, 400 + words * 300);
-        try {
-          const wav = meSpeak.speak(text, { rawdata: "array", speed: 140, pitch: 70, amplitude: 150, variant: "f2" });
-          c.decodeAudioData(new Uint8Array(wav).buffer, (buf) => {
-            if (tok !== speakTok) return fin();
-            const src = c.createBufferSource(); src.buffer = buf; src.connect(c.destination);
-            src.onended = () => { if (localSrc === src) localSrc = null; fin(); };
-            localSrc = src; src.start(); engine = "local";
-          }, fin);
-        } catch (e) { fin(); }
-      };
-      if (engine === "local" || synthBroken) return local();
-      try {
-        let started = false;
-        synth.cancel();
-        const u = new SpeechSynthesisUtterance(text);
-        const vs = synth.getVoices() || [];
-        const v = vs.find(x => /^en(-|_)US/i.test(x.lang)) || vs.find(x => /^en/i.test(x.lang));
-        if (v) u.voice = v;
-        u.lang = "en-US"; u.rate = .9; u.pitch = 1.3;
-        u.onstart = () => { started = true; engine = "synth"; };
-        u.onend = fin;
-        u.onerror = () => { if (!started) { synthBroken = true; local(); } else fin(); };
-        synth.speak(u);
-        setTimeout(() => { if (!started && tok === speakTok && engine !== "synth") { synthBroken = true; try { synth.cancel(); } catch (e) {} local(); } }, 1500);
-      } catch (e) { synthBroken = true; local(); }
-    });
+  const preload = (names) => names.forEach(n => loadClip(n).catch(() => {}));
+  let current = null, playTok = 0;
+  function stopVoice() { playTok++; try { if (current) { current.onended = null; current.stop(); } } catch (e) {} current = null; }
+  function playClip(name, tok) {
+    return loadClip(name).then(buf => new Promise(res => {
+      if (tok !== playTok) return res();
+      const c = ctx(), src = c.createBufferSource(); src.buffer = buf; src.connect(c.destination);
+      const safety = setTimeout(res, buf.duration * 1000 + 600);
+      src.onended = () => { clearTimeout(safety); if (current === src) current = null; res(); };
+      current = src; src.start(); if (window.__log) window.__log.push(name);
+    })).catch(() => wait(250));
   }
+  // say("voice/c_blue", "voice/praise0") plays the clips one after another; a newer say() cuts it off
+  async function say(...names) {
+    stopVoice(); const tok = playTok;
+    for (const n of names) { if (tok !== playTok) return; await playClip(n, tok); if (tok !== playTok) return; await wait(90); }
+  }
+  const praise = () => "voice/praise" + rnd(6);
 
   // ---------- effects ----------
   const fx = $("fx");
@@ -291,7 +267,7 @@
       b.addEventListener("pointerdown", () => choose(o, b, id));
       box.appendChild(b);
     });
-    setTimeout(() => { if (id === roundId) speak(QUESTION[mode]); }, 450);
+    setTimeout(() => { if (id === roundId && !busy) say("voice/q_" + mode); }, 450);
   }
 
   async function choose(o, btn, id) {
@@ -302,7 +278,7 @@
       S.wrong(); replay(btn, "no"); replay(card, "huh");
       if (face) { face.className = face.className.replace(/ ?(grin|oh)/g, "") + " oh"; setTimeout(() => face.classList.remove("oh"), 900); }
       setTimeout(() => btn.classList.add("out"), 450);
-      speak(mode === "numbers" ? "Let's count!" : "Try again!");
+      say(mode === "numbers" ? "voice/count_intro" : "voice/retry" + rnd(3));
       return;
     }
     busy = true;
@@ -312,20 +288,24 @@
     S.right(); replay(card, "happy");
     if (face) face.classList.add("grin");
 
-    let line;
-    if (mode === "colors") line = `${cap(o.name)}! Great job!`;
-    else if (mode === "animals") { line = `${cap(o.name)}! ${o.say}`; const a = card.querySelector(".animal"); if (a) replay(a, "talk"); }
-    else line = "";
-
-    if (mode === "numbers") {
-      const things = [...card.querySelectorAll(".thing")];
-      await wait(350);
-      const p = speak(things.map((_, i) => cap(NUM_WORDS[i + 1])).join(", ") + "!");
-      for (let i = 0; i < things.length; i++) { if (id !== roundId) return; S.count(i); replay(things[i], "count"); await wait(520); }
-      await p; if (id !== roundId) return;
-      await speak(`${cap(NUM_WORDS[o.n])}! Great job!`);
+    if (mode === "colors") {
+      await wait(200); await say("voice/c_" + o.name, praise());
+    } else if (mode === "animals") {
+      await wait(200); stopVoice(); const tok = playTok;
+      await playClip("voice/a_" + o.name, tok); if (id !== roundId) return;
+      const an = card.querySelector(".animal"); if (an) replay(an, "talk");
+      await playClip("animal/" + o.name, tok); if (id !== roundId) return;
+      await wait(120); await playClip(praise(), tok);
     } else {
-      await wait(250); await speak(line);
+      const things = [...card.querySelectorAll(".thing")];
+      await wait(300); stopVoice(); const tok = playTok;
+      for (let i = 0; i < things.length; i++) {
+        if (id !== roundId) return;
+        S.count(i); replay(things[i], "count");
+        await Promise.all([playClip("voice/n_" + (i + 1), tok), wait(450)]);
+      }
+      if (id !== roundId) return;
+      await wait(150); await say("voice/n_" + o.n, praise());
     }
     if (id !== roundId) return;
     await addStar();
@@ -351,7 +331,7 @@
     $("party").classList.add("on");
     const big = $("party").querySelector(".big"); big.style.animation = "none"; void big.offsetWidth; big.style.animation = "";
     S.fanfare(); confetti(30); setTimeout(() => confetti(20), 1200);
-    speak("Hooray! You did it! You are so smart!");
+    say("voice/party");
     roundId++;
   }
   $("party").addEventListener("pointerdown", () => {
@@ -360,9 +340,16 @@
   });
 
   function start(m, el) {
-    ctx(); unlockVoice();
+    ctx(); preloadMode(m); say("voice/m_" + m);
     S.tap(); if (el) replay(el, "go");
-    setTimeout(() => { mode = m; stars = 0; last = null; drawStars(); show("game"); newRound(); }, 250);
+    setTimeout(() => { mode = m; stars = 0; last = null; drawStars(); show("game"); newRound(); }, 750);
+  }
+  function preloadMode(m) {
+    const v = ["q_" + m, "count_intro", "party", "retry0", "retry1", "retry2", "praise0", "praise1", "praise2", "praise3", "praise4", "praise5"].map(x => "voice/" + x);
+    if (m === "colors") COLORS.forEach(c => v.push("voice/c_" + c.name));
+    if (m === "numbers") NUMS.forEach(n => v.push("voice/n_" + n.n));
+    if (m === "animals") ANIMALS.forEach(a => v.push("voice/a_" + a.name, "animal/" + a.name));
+    preload(v);
   }
   function goHome() {
     roundId++; stopVoice(); S.pop(); mode = null;
@@ -370,7 +357,6 @@
     document.querySelectorAll(".mode").forEach(m => { m.style.animation = "none"; void m.offsetWidth; m.style.animation = ""; });
     show("menu");
   }
-  function unlockVoice() { try { if (synth && !engine) { const u = new SpeechSynthesisUtterance(" "); u.volume = 0; synth.speak(u); } } catch (e) {} }
 
   document.querySelectorAll(".mode").forEach(el => el.addEventListener("pointerdown", () => start(el.dataset.m, el)));
   $("home").addEventListener("pointerdown", goHome);
@@ -378,8 +364,8 @@
     if (busy) return;
     ctx(); S.boing(); replay($("card"), "boing");
     const a = $("card").querySelector(".animal");
-    if (mode === "animals" && a) { speak(answer.say); replay(a, "talk"); }
-    else if (mode) speak(QUESTION[mode]);
+    if (mode === "animals" && a) { say("animal/" + answer.name); replay(a, "talk"); }
+    else if (mode) say("voice/q_" + mode);
   });
 
   // ---------- R1 hardware ----------
@@ -395,7 +381,7 @@
   window.addEventListener("scrollDown", () => menuMove(1));
   window.addEventListener("longPressEnd", () => { if (!mode) start(modes[menuSel].dataset.m, modes[menuSel]); });
 
-  bubbles(); drawStars();
+  bubbles(); drawStars(); preload(["voice/m_colors", "voice/m_numbers", "voice/m_animals"]);
 })();
 </script>
 </body>

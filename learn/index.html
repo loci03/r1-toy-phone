@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=240, height=282, initial-scale=1, user-scalable=no">
+<title>Ariel Learns</title>
+<link rel="icon" href="icon.png">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+  html, body { width: 240px; height: 282px; overflow: hidden; background: #fff8ec; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: #2b2b2b; overscroll-behavior: none; touch-action: manipulation; }
+  .screen { position: absolute; inset: 0; display: none; }
+  .screen.on { display: block; }
+
+  /* floating background bubbles */
+  #bg { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+  .bub { position: absolute; border-radius: 50%; opacity: .18; animation: floaty linear infinite; }
+  @keyframes floaty { from { transform: translateY(300px); } to { transform: translateY(-80px); } }
+
+  /* ---------- home ---------- */
+  .mode { position: absolute; left: 14px; width: 212px; height: 76px; border-radius: 22px; border: 3px solid #2b2b2b; box-shadow: inset 0 -6px 0 #0002;
+          display: flex; align-items: center; gap: 14px; padding-left: 16px; font-size: 26px; font-weight: 800; color: #2b2b2b; animation: dropIn .5s cubic-bezier(.3,1.6,.5,1) both; }
+  .mode span { font-size: 40px; display: inline-block; animation: wob 2.4s ease-in-out infinite; }
+  .mode:active { transform: scale(.93); }
+  .mode.go { animation: boing .35s; }
+  @keyframes dropIn { from { transform: translateY(-120px) scale(.6); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes wob { 0%,100% { transform: rotate(-8deg); } 50% { transform: rotate(8deg) scale(1.08); } }
+
+  /* ---------- game ---------- */
+  #home { position: absolute; left: 4px; top: 0; width: 34px; height: 28px; font-size: 19px; border: 0; background: none; z-index: 5; }
+  #home:active { transform: scale(.85); }
+  #stars { position: absolute; left: 40px; right: 40px; top: 4px; text-align: center; font-size: 16px; letter-spacing: 2px; height: 22px; }
+  #stars i { font-style: normal; display: inline-block; filter: grayscale(1); opacity: .35; transition: filter .3s, opacity .3s; }
+  #stars i.got { filter: none; opacity: 1; animation: starPop .6s cubic-bezier(.3,1.8,.5,1); }
+  @keyframes starPop { 0% { transform: scale(0) rotate(-180deg); } 100% { transform: none; } }
+
+  #card { position: absolute; left: 55px; top: 28px; width: 130px; height: 120px; border-radius: 24px; border: 4px solid #2b2b2b; box-shadow: inset 0 -8px 0 #0002;
+          display: flex; flex-wrap: wrap; align-items: center; justify-content: center; align-content: center; overflow: hidden; }
+  #card.in { animation: cardIn .55s cubic-bezier(.3,1.7,.5,1); }
+  #card.happy { animation: hop .7s ease; }
+  #card.huh { animation: jiggle .45s; }
+  #card.boing { animation: boing .35s; }
+  @keyframes cardIn { from { transform: scale(0) rotate(-25deg); } to { transform: none; } }
+  @keyframes hop { 0%,100% { transform: none; } 30% { transform: translateY(-14px) scale(1.08, .95) rotate(-4deg); } 55% { transform: translateY(0) scale(1.1, .9); } 75% { transform: translateY(-6px) rotate(3deg); } }
+  @keyframes jiggle { 0%,100% { transform: none; } 20% { transform: rotate(-6deg); } 40% { transform: rotate(6deg); } 60% { transform: rotate(-4deg); } 80% { transform: rotate(3deg); } }
+  @keyframes boing { 0%,100% { transform: none; } 40% { transform: scale(1.12, .88); } 70% { transform: scale(.94, 1.06); } }
+
+  /* color face */
+  .face { position: relative; width: 100%; height: 100%; }
+  .eye { position: absolute; top: 34px; width: 16px; height: 20px; background: #fff; border-radius: 50%; border: 2px solid #0003; animation: blink 3.6s infinite; transform-origin: 50% 50%; }
+  .eye b { position: absolute; left: 4px; top: 6px; width: 7px; height: 9px; background: #2b2b2b; border-radius: 50%; transition: transform .2s; }
+  .eye.l { left: 33px; } .eye.r { left: 71px; }
+  @keyframes blink { 0%,92%,100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
+  .mouth { position: absolute; left: 47px; top: 64px; width: 28px; height: 14px; border: 4px solid #2b2b2b; border-top: 0; border-radius: 0 0 20px 20px; transition: all .2s; }
+  .face.dark .mouth { border-color: #fff; }
+  .face.grin .mouth { left: 42px; width: 38px; height: 22px; background: #2b2b2b; border-color: #2b2b2b; }
+  .face.dark.grin .mouth { background: #fff; border-color: #fff; }
+  .face.oh .mouth { left: 52px; width: 18px; height: 18px; border: 4px solid #2b2b2b; border-radius: 50%; }
+  .face.dark.oh .mouth { border-color: #fff; }
+  .cheek { position: absolute; top: 60px; width: 14px; height: 8px; border-radius: 50%; background: #fff6; }
+  .cheek.l { left: 18px; } .cheek.r { left: 90px; }
+
+  /* counting things / animals */
+  .thing { display: inline-block; margin: 1px 3px; line-height: 1; transition: transform .15s; }
+  .thing.count { animation: countPop .4s; }
+  @keyframes countPop { 0%,100% { transform: none; } 50% { transform: scale(1.5) rotate(-10deg); } }
+  .animal { font-size: 78px; line-height: 1; display: inline-block; animation: bob 1.6s ease-in-out infinite; }
+  @keyframes bob { 0%,100% { transform: translateY(2px) rotate(-3deg); } 50% { transform: translateY(-4px) rotate(3deg); } }
+  .animal.talk { animation: talk .25s 4; }
+  @keyframes talk { 0%,100% { transform: scale(1); } 50% { transform: scale(1.15, .9) rotate(-5deg); } }
+
+  .ans { position: absolute; left: 14px; width: 212px; height: 36px; border-radius: 18px; background: #fff; border: 3px solid #2b2b2b; box-shadow: inset 0 -4px 0 #0001;
+         font-size: 23px; font-weight: 800; color: #2b2b2b; display: flex; align-items: center; justify-content: center; gap: 6px; transition: background .2s, opacity .3s;
+         animation: slideIn .45s cubic-bezier(.3,1.5,.5,1) both; }
+  .ans.num { font-size: 27px; }
+  .ans:active { transform: scale(.94); }
+  .ans.ok { background: #dfffe2; border-color: #22a447; color: #187a33; animation: okPop .5s cubic-bezier(.3,1.8,.5,1); }
+  .ans.no { animation: shake .45s; background: #ffe3e3; }
+  .ans.out { background: #eee; border-color: #c4c4c4; color: #b5b5b5; box-shadow: none; }
+  @keyframes slideIn { from { transform: translateX(260px); } to { transform: none; } }
+  @keyframes okPop { 0% { transform: scale(.8); } 60% { transform: scale(1.1); } 100% { transform: none; } }
+  @keyframes shake { 0%,100% { transform: none; } 20% { transform: translateX(-9px); } 40% { transform: translateX(9px); } 60% { transform: translateX(-6px); } 80% { transform: translateX(5px); } }
+
+  /* effects */
+  #fx { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 20; }
+  .spark { position: absolute; font-size: 18px; animation: burst .8s ease-out forwards; }
+  @keyframes burst { from { transform: translate(0,0) scale(.4); opacity: 1; } to { transform: translate(var(--dx), var(--dy)) scale(1.2) rotate(200deg); opacity: 0; } }
+  .conf { position: absolute; top: -30px; font-size: 22px; animation: fall linear forwards; }
+  @keyframes fall { from { transform: translateY(0) rotate(0); } to { transform: translateY(340px) rotate(720deg); } }
+  .flyStar { position: absolute; font-size: 26px; transition: all .7s cubic-bezier(.5,-0.4,.5,1); z-index: 21; }
+
+  #party { position: absolute; inset: 0; background: #fff8ecee; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 15; }
+  #party.on { display: flex; }
+  #party .big { font-size: 96px; animation: trophy .9s cubic-bezier(.3,1.7,.5,1), bob 1.2s .9s ease-in-out infinite; }
+  #party .msg { font-size: 30px; font-weight: 900; margin-top: 6px; animation: dropIn .6s .3s both; }
+  #party .tap { font-size: 14px; margin-top: 10px; opacity: .6; }
+  @keyframes trophy { from { transform: scale(0) rotate(-360deg); } to { transform: none; } }
+</style>
+</head>
+<body>
+<div id="bg"></div>
+
+<div id="menu" class="screen on">
+  <div class="mode" data-m="colors"  style="top:10px;background:#ffe14d"><span>🎨</span>Colors</div>
+  <div class="mode" data-m="numbers" style="top:102px;background:#8fd3ff;animation-delay:.1s"><span style="animation-delay:-.8s">🔢</span>Numbers</div>
+  <div class="mode" data-m="animals" style="top:194px;background:#a7f0a0;animation-delay:.2s"><span style="animation-delay:-1.6s">🐶</span>Animals</div>
+</div>
+
+<div id="game" class="screen">
+  <button id="home" aria-label="Home">🏠</button>
+  <div id="stars"></div>
+  <div id="card"></div>
+  <div id="answers"></div>
+</div>
+
+<div id="party"><div class="big">🏆</div><div class="msg">Hooray!</div><div class="tap">tap to play more</div></div>
+<div id="fx"></div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const rnd = (n) => Math.floor(Math.random() * n);
+  const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const wait = (ms) => new Promise(r => setTimeout(r, ms));
+
+  // ---------- content ----------
+  const COLORS = [
+    { name: "red", c: "#ff4040" }, { name: "orange", c: "#ff9a1f" }, { name: "yellow", c: "#ffe033" },
+    { name: "green", c: "#3ccf5a" }, { name: "blue", c: "#2f8cff" }, { name: "purple", c: "#9b59ff" },
+    { name: "pink", c: "#ff7ec8" }, { name: "brown", c: "#9b6a3c", dark: 1 }, { name: "black", c: "#262626", dark: 1 },
+    { name: "white", c: "#ffffff" }
+  ];
+  const ANIMALS = [
+    { name: "cow", e: "🐄", say: "Moo! Moo!" }, { name: "dog", e: "🐶", say: "Woof woof!" }, { name: "cat", e: "🐱", say: "Meow!" },
+    { name: "duck", e: "🦆", say: "Quack quack!" }, { name: "pig", e: "🐷", say: "Oink oink!" }, { name: "sheep", e: "🐑", say: "Baa baa!" },
+    { name: "horse", e: "🐴", say: "Neigh!" }, { name: "lion", e: "🦁", say: "Roar!" }, { name: "frog", e: "🐸", say: "Ribbit ribbit!" },
+    { name: "chicken", e: "🐔", say: "Cluck cluck!" }, { name: "monkey", e: "🐵", say: "Ooh ooh, ah ah!" }, { name: "owl", e: "🦉", say: "Hoo hoo!" },
+    { name: "bee", e: "🐝", say: "Buzz buzz!" }, { name: "fish", e: "🐟", say: "Blub blub!" }, { name: "bird", e: "🐦", say: "Tweet tweet!" },
+    { name: "elephant", e: "🐘", say: "Toot toot!" }
+  ];
+  const THINGS = ["🍎", "🐟", "🎈", "🦆", "🍓", "🐞", "🌸", "🍌", "🚗", "🧸", "🍪"];
+  const NUM_WORDS = ["zero", "one", "two", "three", "four", "five"];
+  const NUMS = [1, 2, 3, 4, 5].map(n => ({ name: String(n), n }));
+  const CARD_BG = { numbers: ["#fff3d6", "#ffe9f4", "#e8f6ff", "#eaffea"], animals: ["#e3f6ff", "#fff3d6", "#f1eaff", "#eaffea"] };
+  const QUESTION = { colors: "What color is it?", numbers: "How many?", animals: "Who is this?" };
+  const GOAL = 5;
+
+  // ---------- sounds (Web Audio) ----------
+  let ac = null;
+  function ctx() { try { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); if (ac.state === "suspended") ac.resume(); } catch (e) {} return ac; }
+  function tone(freq, t0, dur, type = "sine", vol = .18, glide = 0) {
+    const c = ctx(); if (!c) return;
+    try {
+      const o = c.createOscillator(), g = c.createGain(), t = c.currentTime + t0;
+      o.type = type; o.frequency.setValueAtTime(freq, t);
+      if (glide) o.frequency.exponentialRampToValueAtTime(freq * glide, t + dur);
+      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + .01); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+      o.connect(g).connect(c.destination); o.start(t); o.stop(t + dur + .03);
+    } catch (e) {}
+  }
+  const S = {
+    tap:    () => tone(520, 0, .12, "triangle", .2, 1.6),
+    whoosh: () => { tone(300, 0, .25, "sine", .12, 3); tone(450, .05, .2, "triangle", .08, 2.5); },
+    pop:    () => tone(260, 0, .2, "sine", .25, 3),
+    boing:  () => { tone(180, 0, .35, "sine", .25, 2.2); tone(360, .02, .3, "triangle", .08, .6); },
+    right:  () => [523, 659, 784, 1047].forEach((f, i) => tone(f, i * .09, .25, "triangle", .2)),
+    wrong:  () => { tone(300, 0, .18, "square", .07, .8); tone(220, .18, .28, "square", .07, .7); },
+    count:  (i) => tone([523, 587, 659, 784, 880][i % 5], 0, .18, "triangle", .2),
+    star:   () => { tone(1320, 0, .12, "sine", .15); tone(1760, .08, .25, "sine", .15); },
+    fanfare: () => [[523,0],[523,.15],[523,.3],[659,.45],[784,.7],[659,.95],[784,1.1],[1047,1.3]].forEach(([f,t]) => { tone(f, t, .3, "triangle", .2); tone(f / 2, t, .3, "sine", .1); })
+  };
+
+  // ---------- voice ----------
+  // 1) the device's system voice, 2) meSpeak (shipped with the app, works offline), else stay quiet.
+  const synth = window.speechSynthesis;
+  let engine = null, synthBroken = !synth, localSrc = null, speakTok = 0;
+  (function loadMeSpeak() { // shared copy at the repo root, fall back to a local copy
+    const add = (src, next) => { const s = document.createElement("script"); s.src = src; s.defer = true; if (next) s.onerror = next; document.head.appendChild(s); };
+    add("../mespeak.js", () => add("mespeak.js"));
+  })();
+  function stopVoice() {
+    speakTok++;
+    try { synth && synth.cancel(); } catch (e) {}
+    try { if (localSrc) { localSrc.onended = null; localSrc.stop(); localSrc = null; } } catch (e) {}
+  }
+  function speak(text) {
+    stopVoice();
+    const tok = speakTok, words = text.split(/\s+/).length;
+    return new Promise(res => {
+      let done = false;
+      const fin = () => { if (!done) { done = true; clearTimeout(safety); res(); } };
+      const safety = setTimeout(fin, 2500 + words * 600);
+      const local = () => {
+        const c = ctx();
+        if (!window.meSpeak || !c || tok !== speakTok) return setTimeout(fin, 400 + words * 300);
+        try {
+          const wav = meSpeak.speak(text, { rawdata: "array", speed: 140, pitch: 70, amplitude: 150, variant: "f2" });
+          c.decodeAudioData(new Uint8Array(wav).buffer, (buf) => {
+            if (tok !== speakTok) return fin();
+            const src = c.createBufferSource(); src.buffer = buf; src.connect(c.destination);
+            src.onended = () => { if (localSrc === src) localSrc = null; fin(); };
+            localSrc = src; src.start(); engine = "local";
+          }, fin);
+        } catch (e) { fin(); }
+      };
+      if (engine === "local" || synthBroken) return local();
+      try {
+        let started = false;
+        synth.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        const vs = synth.getVoices() || [];
+        const v = vs.find(x => /^en(-|_)US/i.test(x.lang)) || vs.find(x => /^en/i.test(x.lang));
+        if (v) u.voice = v;
+        u.lang = "en-US"; u.rate = .9; u.pitch = 1.3;
+        u.onstart = () => { started = true; engine = "synth"; };
+        u.onend = fin;
+        u.onerror = () => { if (!started) { synthBroken = true; local(); } else fin(); };
+        synth.speak(u);
+        setTimeout(() => { if (!started && tok === speakTok && engine !== "synth") { synthBroken = true; try { synth.cancel(); } catch (e) {} local(); } }, 1500);
+      } catch (e) { synthBroken = true; local(); }
+    });
+  }
+
+  // ---------- effects ----------
+  const fx = $("fx");
+  function sparkle(x, y, n = 10) {
+    const icons = ["✨", "⭐", "💫", "🌟"];
+    for (let i = 0; i < n; i++) {
+      const s = document.createElement("div"); s.className = "spark"; s.textContent = icons[rnd(icons.length)];
+      const a = (i / n) * Math.PI * 2, d = 40 + rnd(30);
+      s.style.left = (x - 9) + "px"; s.style.top = (y - 9) + "px";
+      s.style.setProperty("--dx", Math.cos(a) * d + "px"); s.style.setProperty("--dy", Math.sin(a) * d + "px");
+      fx.appendChild(s); setTimeout(() => s.remove(), 850);
+    }
+  }
+  function confetti(n = 26) {
+    const icons = ["🎉", "🎊", "⭐", "🎈", "💖", "🌟", "🍭"];
+    for (let i = 0; i < n; i++) {
+      const c = document.createElement("div"); c.className = "conf"; c.textContent = icons[rnd(icons.length)];
+      c.style.left = rnd(220) + "px"; c.style.animationDuration = (1.4 + Math.random() * 1.2) + "s"; c.style.animationDelay = (Math.random() * .6) + "s";
+      fx.appendChild(c); setTimeout(() => c.remove(), 3300);
+    }
+  }
+  function bubbles() {
+    const cols = ["#ff4040", "#ffe033", "#2f8cff", "#3ccf5a", "#ff7ec8", "#9b59ff"];
+    for (let i = 0; i < 9; i++) {
+      const b = document.createElement("div"); b.className = "bub"; const s = 18 + rnd(36);
+      b.style.cssText = `width:${s}px;height:${s}px;left:${rnd(230)}px;background:${cols[i % cols.length]};animation-duration:${9 + rnd(9)}s;animation-delay:-${rnd(16)}s`;
+      $("bg").appendChild(b);
+    }
+  }
+  const replay = (el, cls) => { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); };
+
+  // ---------- game ----------
+  let mode = null, answer = null, last = null, stars = 0, busy = false, roundId = 0;
+
+  function show(id) { document.querySelectorAll(".screen").forEach(s => s.classList.toggle("on", s.id === id)); }
+  function drawStars() { $("stars").innerHTML = Array.from({ length: GOAL }, (_, i) => `<i class="${i < stars ? "got" : ""}">⭐</i>`).join(""); }
+
+  function pool() { return mode === "colors" ? COLORS : mode === "animals" ? ANIMALS : NUMS; }
+
+  function newRound() {
+    const id = ++roundId; busy = false; stopVoice();
+    const all = pool();
+    do { answer = all[rnd(all.length)]; } while (answer === last);
+    last = answer;
+    const opts = shuffle([answer, ...shuffle(all.filter(x => x !== answer)).slice(0, 2)]);
+    if (mode === "numbers") opts.sort((a, b) => a.n - b.n);
+
+    const card = $("card");
+    card.innerHTML = ""; card.style.background = "";
+    if (mode === "colors") {
+      card.style.background = answer.c;
+      card.innerHTML = `<div class="face ${answer.dark ? "dark" : ""}"><div class="cheek l"></div><div class="cheek r"></div><div class="eye l"><b></b></div><div class="eye r"><b></b></div><div class="mouth"></div></div>`;
+    } else if (mode === "numbers") {
+      card.style.background = CARD_BG.numbers[rnd(4)];
+      const t = THINGS[rnd(THINGS.length)], size = answer.n <= 2 ? 44 : answer.n <= 4 ? 36 : 30;
+      for (let i = 0; i < answer.n; i++) { const s = document.createElement("span"); s.className = "thing"; s.textContent = t; s.style.fontSize = size + "px"; card.appendChild(s); }
+      if (answer.n === 4) card.style.padding = "0 18px"; else card.style.padding = answer.n === 5 ? "0 8px" : "";
+    } else {
+      card.style.background = CARD_BG.animals[rnd(4)];
+      card.innerHTML = `<span class="animal">${answer.e}</span>`;
+    }
+    replay(card, "in"); S.whoosh();
+
+    const box = $("answers"); box.innerHTML = "";
+    opts.forEach((o, i) => {
+      const b = document.createElement("div");
+      b.className = "ans" + (mode === "numbers" ? " num" : "");
+      b.style.top = (158 + i * 40) + "px"; b.style.animationDelay = (.08 * i + .15) + "s";
+      b.textContent = o.name;
+      b.addEventListener("pointerdown", () => choose(o, b, id));
+      box.appendChild(b);
+    });
+    setTimeout(() => { if (id === roundId) speak(QUESTION[mode]); }, 450);
+  }
+
+  async function choose(o, btn, id) {
+    if (busy || id !== roundId || btn.classList.contains("out")) return;
+    ctx();
+    const card = $("card"), face = card.querySelector(".face");
+    if (o !== answer) {
+      S.wrong(); replay(btn, "no"); replay(card, "huh");
+      if (face) { face.className = face.className.replace(/ ?(grin|oh)/g, "") + " oh"; setTimeout(() => face.classList.remove("oh"), 900); }
+      setTimeout(() => btn.classList.add("out"), 450);
+      speak(mode === "numbers" ? "Let's count!" : "Try again!");
+      return;
+    }
+    busy = true;
+    btn.className = "ans ok" + (mode === "numbers" ? " num" : ""); btn.textContent = "✅ " + o.name;
+    document.querySelectorAll(".ans").forEach(b => b !== btn && b.classList.add("out"));
+    const r = btn.getBoundingClientRect(); sparkle(r.left + r.width / 2, r.top + r.height / 2, 12);
+    S.right(); replay(card, "happy");
+    if (face) face.classList.add("grin");
+
+    let line;
+    if (mode === "colors") line = `${cap(o.name)}! Great job!`;
+    else if (mode === "animals") { line = `${cap(o.name)}! ${o.say}`; const a = card.querySelector(".animal"); if (a) replay(a, "talk"); }
+    else line = "";
+
+    if (mode === "numbers") {
+      const things = [...card.querySelectorAll(".thing")];
+      await wait(350);
+      const p = speak(things.map((_, i) => cap(NUM_WORDS[i + 1])).join(", ") + "!");
+      for (let i = 0; i < things.length; i++) { if (id !== roundId) return; S.count(i); replay(things[i], "count"); await wait(520); }
+      await p; if (id !== roundId) return;
+      await speak(`${cap(NUM_WORDS[o.n])}! Great job!`);
+    } else {
+      await wait(250); await speak(line);
+    }
+    if (id !== roundId) return;
+    await addStar();
+    if (id !== roundId) return;
+    if (stars >= GOAL) return party();
+    await wait(300); if (id === roundId) newRound();
+  }
+  const cap = (s) => s[0].toUpperCase() + s.slice(1);
+
+  function addStar() {
+    return new Promise(res => {
+      const card = $("card").getBoundingClientRect();
+      const slot = $("stars").children[stars].getBoundingClientRect();
+      const f = document.createElement("div"); f.className = "flyStar"; f.textContent = "⭐";
+      f.style.left = (card.left + card.width / 2 - 13) + "px"; f.style.top = (card.top + card.height / 2 - 13) + "px"; f.style.transform = "scale(2)";
+      fx.appendChild(f);
+      requestAnimationFrame(() => requestAnimationFrame(() => { f.style.left = (slot.left - 4) + "px"; f.style.top = (slot.top - 4) + "px"; f.style.transform = "scale(.7)"; }));
+      setTimeout(() => { f.remove(); stars++; drawStars(); S.star(); res(); }, 720);
+    });
+  }
+
+  function party() {
+    $("party").classList.add("on");
+    const big = $("party").querySelector(".big"); big.style.animation = "none"; void big.offsetWidth; big.style.animation = "";
+    S.fanfare(); confetti(30); setTimeout(() => confetti(20), 1200);
+    speak("Hooray! You did it! You are so smart!");
+    roundId++;
+  }
+  $("party").addEventListener("pointerdown", () => {
+    if (!$("party").classList.contains("on")) return;
+    $("party").classList.remove("on"); stars = 0; drawStars(); S.pop(); newRound();
+  });
+
+  function start(m, el) {
+    ctx(); unlockVoice();
+    S.tap(); if (el) replay(el, "go");
+    setTimeout(() => { mode = m; stars = 0; last = null; drawStars(); show("game"); newRound(); }, 250);
+  }
+  function goHome() {
+    roundId++; stopVoice(); S.pop(); mode = null;
+    $("party").classList.remove("on");
+    document.querySelectorAll(".mode").forEach(m => { m.style.animation = "none"; void m.offsetWidth; m.style.animation = ""; });
+    show("menu");
+  }
+  function unlockVoice() { try { if (synth && !engine) { const u = new SpeechSynthesisUtterance(" "); u.volume = 0; synth.speak(u); } } catch (e) {} }
+
+  document.querySelectorAll(".mode").forEach(el => el.addEventListener("pointerdown", () => start(el.dataset.m, el)));
+  $("home").addEventListener("pointerdown", goHome);
+  $("card").addEventListener("pointerdown", () => {
+    if (busy) return;
+    ctx(); S.boing(); replay($("card"), "boing");
+    const a = $("card").querySelector(".animal");
+    if (mode === "animals" && a) { speak(answer.say); replay(a, "talk"); }
+    else if (mode) speak(QUESTION[mode]);
+  });
+
+  // ---------- R1 hardware ----------
+  // side button: new question (or back to playing after a party); scroll wheel: pick a game on the menu
+  window.addEventListener("sideClick", () => {
+    if ($("party").classList.contains("on")) { $("party").dispatchEvent(new Event("pointerdown")); return; }
+    if (mode) { if (!busy) newRound(); } else start(modes[menuSel].dataset.m, modes[menuSel]);
+  });
+  let menuSel = 0;
+  const modes = [...document.querySelectorAll(".mode")];
+  function menuMove(d) { if (mode) return; menuSel = (menuSel + d + 3) % 3; modes.forEach((m, i) => m.style.outline = i === menuSel ? "4px solid #ff4fa3" : ""); S.tap(); }
+  window.addEventListener("scrollUp", () => menuMove(-1));
+  window.addEventListener("scrollDown", () => menuMove(1));
+  window.addEventListener("longPressEnd", () => { if (!mode) start(modes[menuSel].dataset.m, modes[menuSel]); });
+
+  bubbles(); drawStars();
+})();
+</script>
+</body>
+</html>

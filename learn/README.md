@@ -11,7 +11,7 @@ A look-and-tap learning game for a toddler. A picture shows on top and three wor
 - On the R1: the scroll wheel picks a game on the start screen and the side button starts it; in a game the side button skips to a new question.
 
 ## Sounds
-- **Voice:** every phrase is a pre-recorded clip in `audio/voice/`, made with the Kokoro-82M neural voice "Heart" (Apache-2.0), so it sounds natural and works the same on every device, even offline once loaded.
+- **Voice:** every phrase is a pre-recorded clip in `audio/voice/`, made on our own Mac mini with Qwen3-TTS 1.7B VoiceDesign (8-bit MLX, Apache-2.0) from a written voice description: "A playful, giggly young girl's voice, about ten years old, American accent, super excited and delighted, sing-song and expressive, cartoon character energy." (seed 7; a few clips use another seed where seed 7 misspoke). It sounds excited and happy and works the same on every device, even offline once loaded.
 - **Animal sounds:** real recordings in `audio/animal/`, from the MIT-licensed skanas.lv project (github.com/ronv/skanas.lv). The bee buzz is synthesized.
 - Clips play through Web Audio, the same way the game's beeps do.
 

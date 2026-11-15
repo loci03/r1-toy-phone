@@ -17,11 +17,16 @@
   @keyframes floaty { from { transform: translateY(300px); } to { transform: translateY(-80px); } }
 
   /* ---------- home ---------- */
-  .mode { position: absolute; left: 14px; width: 212px; height: 76px; border-radius: 22px; border: 3px solid #2b2b2b; box-shadow: inset 0 -6px 0 #0002;
+  .mode { position: absolute; left: 14px; width: 212px; height: 70px; border-radius: 22px; border: 3px solid #2b2b2b; box-shadow: inset 0 -6px 0 #0002;
           display: flex; align-items: center; gap: 14px; padding-left: 16px; font-size: 26px; font-weight: 800; color: #2b2b2b; animation: dropIn .5s cubic-bezier(.3,1.6,.5,1) both; }
   .mode span { font-size: 40px; display: inline-block; animation: wob 2.4s ease-in-out infinite; }
   .mode:active { transform: scale(.93); }
   .mode.go { animation: boing .35s; }
+  .gift { position: absolute; right: -8px; top: -12px; font-size: 22px !important; animation: wob 1.2s ease-in-out infinite !important; }
+  #shelf { position: absolute; left: 14px; width: 212px; top: 236px; height: 40px; border-radius: 16px; background: #fff; border: 3px dashed #c9b88f;
+           display: flex; align-items: center; justify-content: center; gap: 1px; font-size: 21px; overflow: hidden; }
+  #shelf small { font-size: 12px; font-weight: 700; color: #a08a5c; text-align: center; line-height: 1.1; }
+  #shelf span { display: inline-block; animation: dropIn .5s cubic-bezier(.3,1.6,.5,1) both; }
   @keyframes dropIn { from { transform: translateY(-120px) scale(.6); opacity: 0; } to { transform: none; opacity: 1; } }
   @keyframes wob { 0%,100% { transform: rotate(-8deg); } 50% { transform: rotate(8deg) scale(1.08); } }
 
@@ -60,9 +65,16 @@
   .cheek.l { left: 18px; } .cheek.r { left: 90px; }
 
   /* counting things / animals */
-  .thing { display: inline-block; margin: 1px 3px; line-height: 1; transition: transform .15s; }
-  .thing.count { animation: countPop .4s; }
-  @keyframes countPop { 0%,100% { transform: none; } 50% { transform: scale(1.5) rotate(-10deg); } }
+  /* things to count: placed on fixed spots (like dice) so nothing is ever cut off */
+  .thing { position: absolute; transform: translate(-50%, -50%); line-height: 1; display: flex; align-items: center; justify-content: center; }
+  .thing.count { animation: countPop .45s; }
+  @keyframes countPop { 0%,100% { transform: translate(-50%, -50%); } 50% { transform: translate(-50%, -50%) scale(1.45) rotate(-10deg); } }
+  /* "color friends": little smiley circles in Ariel's favorite colors */
+  .friend { border-radius: 50%; border: 3px solid #2b2b2b; box-shadow: inset 0 -4px 0 #0002; }
+  .friend i { position: absolute; top: 30%; width: 15%; height: 22%; background: #2b2b2b; border-radius: 50%; }
+  .friend i.l { left: 27%; } .friend i.r { right: 27%; }
+  .friend b { position: absolute; left: 31%; top: 55%; width: 38%; height: 17%; border: 3px solid #2b2b2b; border-top: 0; border-radius: 0 0 20px 20px; }
+  .friend.dk i { background: #fff; } .friend.dk b { border-color: #fff; }
   .animal { font-size: 78px; line-height: 1; display: inline-block; animation: bob 1.6s ease-in-out infinite; }
   @keyframes bob { 0%,100% { transform: translateY(2px) rotate(-3deg); } 50% { transform: translateY(-4px) rotate(3deg); } }
   .animal.talk { animation: talk .25s 4; }
@@ -76,6 +88,10 @@
   .ans.ok { background: #dfffe2; border-color: #22a447; color: #187a33; animation: okPop .5s cubic-bezier(.3,1.8,.5,1); }
   .ans.no { animation: shake .45s; background: #ffe3e3; }
   .ans.out { background: #eee; border-color: #c4c4c4; color: #b5b5b5; box-shadow: none; }
+  .ans.two { height: 46px; border-radius: 23px; font-size: 27px; }
+  .ans.two.num { font-size: 30px; }
+  .ans.hint { border-color: #ffb300; background: #fff7d6; animation: hintGlow 1s ease-in-out infinite; }
+  @keyframes hintGlow { 0%,100% { box-shadow: 0 0 0 0 #ffb30099; transform: none; } 50% { box-shadow: 0 0 0 7px #ffb30066; transform: scale(1.04); } }
   @keyframes slideIn { from { transform: translateX(260px); } to { transform: none; } }
   @keyframes okPop { 0% { transform: scale(.8); } 60% { transform: scale(1.1); } 100% { transform: none; } }
   @keyframes shake { 0%,100% { transform: none; } 20% { transform: translateX(-9px); } 40% { transform: translateX(9px); } 60% { transform: translateX(-6px); } 80% { transform: translateX(5px); } }
@@ -100,9 +116,10 @@
 <div id="bg"></div>
 
 <div id="menu" class="screen on">
-  <div class="mode" data-m="colors"  style="top:10px;background:#ffe14d"><span>🎨</span>Colors</div>
-  <div class="mode" data-m="numbers" style="top:102px;background:#8fd3ff;animation-delay:.1s"><span style="animation-delay:-.8s">🔢</span>Numbers</div>
-  <div class="mode" data-m="animals" style="top:194px;background:#a7f0a0;animation-delay:.2s"><span style="animation-delay:-1.6s">🐶</span>Animals</div>
+  <div class="mode" data-m="colors"  style="top:6px;background:#ffe14d"><span>🎨</span>Colors</div>
+  <div class="mode" data-m="numbers" style="top:83px;background:#8fd3ff;animation-delay:.1s"><span style="animation-delay:-.8s">🔢</span>Numbers<span class="gift">🎁</span></div>
+  <div class="mode" data-m="animals" style="top:160px;background:#a7f0a0;animation-delay:.2s"><span style="animation-delay:-1.6s">🐶</span>Animals<span class="gift" style="animation-delay:-.6s !important">🎁</span></div>
+  <div id="shelf"></div>
 </div>
 
 <div id="game" class="screen">
@@ -139,7 +156,18 @@
   const THINGS = ["🍎", "🐟", "🎈", "🦆", "🍓", "🐞", "🌸", "🍌", "🚗", "🧸", "🍪"];
   const NUMS = [1, 2, 3, 4, 5].map(n => ({ name: String(n), n }));
   const CARD_BG = { numbers: ["#fff3d6", "#ffe9f4", "#e8f6ff", "#eaffea"], animals: ["#e3f6ff", "#fff3d6", "#f1eaff", "#eaffea"] };
-  const GOAL = 5;
+  const STICKERS = ["🦄", "🌈", "🚀", "🦋", "🍦", "🐳", "🦖", "🍩", "🎀", "🐼", "🧁", "🐙", "🌻", "🚂", "🐞", "🍭", "🐬", "🎈", "🦒", "🐧"];
+  const FRIEND_COLORS = COLORS.filter(c => c.name !== "white");
+  // Numbers and Animals start easy (2 choices, small numbers, familiar animals) and grow as Ariel wins.
+  // Colors is already easy for her, so it always plays at the full level.
+  let save = { parties: { numbers: 0, animals: 0 }, stickers: [] };
+  try { const j = JSON.parse(localStorage.getItem("arielLearns") || "null"); if (j && j.parties) save = j; } catch (e) {}
+  const persist = () => { try { localStorage.setItem("arielLearns", JSON.stringify(save)); } catch (e) {} };
+  const level = (m) => m === "colors" ? 2 : (save.parties[m] || 0) >= 5 ? 2 : (save.parties[m] || 0) >= 2 ? 1 : 0;
+  const goal = () => mode === "colors" ? 5 : [3, 4, 5][level(mode)];
+  // dice-style spots (percent of the card) for 1-5 things
+  const SPOTS = { 1: [[50, 50]], 2: [[29, 50], [71, 50]], 3: [[27, 31], [73, 31], [50, 71]],
+                  4: [[29, 29], [71, 29], [29, 71], [71, 71]], 5: [[24, 25], [76, 25], [50, 50], [24, 75], [76, 75]] };
 
   // ---------- sounds (Web Audio) ----------
   let ac = null;
@@ -230,16 +258,24 @@
   let mode = null, answer = null, last = null, stars = 0, busy = false, roundId = 0;
 
   function show(id) { document.querySelectorAll(".screen").forEach(s => s.classList.toggle("on", s.id === id)); }
-  function drawStars() { $("stars").innerHTML = Array.from({ length: GOAL }, (_, i) => `<i class="${i < stars ? "got" : ""}">⭐</i>`).join(""); }
+  function drawStars() { $("stars").innerHTML = Array.from({ length: goal() }, (_, i) => `<i class="${i < stars ? "got" : ""}">⭐</i>`).join(""); }
 
-  function pool() { return mode === "colors" ? COLORS : mode === "animals" ? ANIMALS : NUMS; }
+  function pool() {
+    const lv = level(mode);
+    if (mode === "colors") return COLORS;
+    if (mode === "numbers") return NUMS.slice(0, [3, 4, 5][lv]);
+    return ANIMALS.slice(0, [6, 11, ANIMALS.length][lv]);
+  }
+  let wrongs = 0, hinting = false;
 
   function newRound() {
     const id = ++roundId; busy = false; stopVoice();
     const all = pool();
     do { answer = all[rnd(all.length)]; } while (answer === last);
     last = answer;
-    const opts = shuffle([answer, ...shuffle(all.filter(x => x !== answer)).slice(0, 2)]);
+    const nOpts = level(mode) === 0 ? 2 : 3;
+    const opts = shuffle([answer, ...shuffle(all.filter(x => x !== answer)).slice(0, nOpts - 1)]);
+    wrongs = 0; hinting = false;
     if (mode === "numbers") opts.sort((a, b) => a.n - b.n);
 
     const card = $("card");
@@ -249,9 +285,16 @@
       card.innerHTML = `<div class="face ${answer.dark ? "dark" : ""}"><div class="cheek l"></div><div class="cheek r"></div><div class="eye l"><b></b></div><div class="eye r"><b></b></div><div class="mouth"></div></div>`;
     } else if (mode === "numbers") {
       card.style.background = CARD_BG.numbers[rnd(4)];
-      const t = THINGS[rnd(THINGS.length)], size = answer.n <= 2 ? 44 : answer.n <= 4 ? 36 : 30;
-      for (let i = 0; i < answer.n; i++) { const s = document.createElement("span"); s.className = "thing"; s.textContent = t; s.style.fontSize = size + "px"; card.appendChild(s); }
-      if (answer.n === 4) card.style.padding = "0 18px"; else card.style.padding = answer.n === 5 ? "0 8px" : "";
+      // mostly smiley "color friends" (a bridge from the game she loves), sometimes fun objects
+      const useFriends = Math.random() < .65, col = FRIEND_COLORS[rnd(FRIEND_COLORS.length)], t = THINGS[rnd(THINGS.length)];
+      const size = [0, 50, 44, 38, 36, 32][answer.n];
+      SPOTS[answer.n].forEach(([x, y]) => {
+        const s = document.createElement("div"); s.className = "thing";
+        s.style.left = x + "%"; s.style.top = y + "%"; s.style.width = s.style.height = size + "px";
+        if (useFriends) { s.classList.add("friend"); if (col.dark) s.classList.add("dk"); s.style.background = col.c; s.innerHTML = '<i class="l"></i><i class="r"></i><b></b>'; }
+        else { s.textContent = t; s.style.fontSize = Math.round(size * .82) + "px"; }
+        card.appendChild(s);
+      });
     } else {
       card.style.background = CARD_BG.animals[rnd(4)];
       card.innerHTML = `<span class="animal">${answer.e}</span>`;
@@ -261,8 +304,8 @@
     const box = $("answers"); box.innerHTML = "";
     opts.forEach((o, i) => {
       const b = document.createElement("div");
-      b.className = "ans" + (mode === "numbers" ? " num" : "");
-      b.style.top = (158 + i * 40) + "px"; b.style.animationDelay = (.08 * i + .15) + "s";
+      b.className = "ans" + (mode === "numbers" ? " num" : "") + (nOpts === 2 ? " two" : "");
+      b.style.top = (nOpts === 2 ? 162 + i * 58 : 158 + i * 40) + "px"; b.style.animationDelay = (.08 * i + .15) + "s";
       b.textContent = o.name;
       b.addEventListener("pointerdown", () => choose(o, b, id));
       box.appendChild(b);
@@ -271,18 +314,38 @@
   }
 
   async function choose(o, btn, id) {
-    if (busy || id !== roundId || btn.classList.contains("out")) return;
+    if (busy || hinting || id !== roundId || btn.classList.contains("out")) return;
     ctx();
     const card = $("card"), face = card.querySelector(".face");
     if (o !== answer) {
       S.wrong(); replay(btn, "no"); replay(card, "huh");
       if (face) { face.className = face.className.replace(/ ?(grin|oh)/g, "") + " oh"; setTimeout(() => face.classList.remove("oh"), 900); }
       setTimeout(() => btn.classList.add("out"), 450);
-      say(mode === "numbers" ? "voice/count_intro" : "voice/retry" + rnd(3));
+      wrongs++;
+      if (mode === "colors") { say("voice/retry" + rnd(3)); return; }
+      // a gentle hint so she always ends up finding it: count together / hear the animal, then the right word glows
+      hinting = true; stopVoice(); const tok = playTok;
+      const right = [...document.querySelectorAll(".ans")].find(b => b.textContent === answer.name);
+      if (mode === "numbers") {
+        await playClip("voice/count_intro", tok);
+        const things = [...card.querySelectorAll(".thing")];
+        for (let i = 0; i < things.length; i++) {
+          if (id !== roundId) return;
+          S.count(i); replay(things[i], "count");
+          await Promise.all([playClip("voice/n_" + (i + 1), tok), wait(450)]);
+        }
+      } else {
+        await playClip("voice/retry" + rnd(3), tok); if (id !== roundId) return;
+        const an = card.querySelector(".animal"); if (an) replay(an, "talk");
+        await playClip("animal/" + answer.name, tok);
+      }
+      if (id !== roundId) return;
+      hinting = false;
+      if (right) right.classList.add("hint");
       return;
     }
     busy = true;
-    btn.className = "ans ok" + (mode === "numbers" ? " num" : ""); btn.textContent = "✅ " + o.name;
+    btn.className = "ans ok" + (mode === "numbers" ? " num" : "") + (btn.classList.contains("two") ? " two" : ""); btn.textContent = "✅ " + o.name;
     document.querySelectorAll(".ans").forEach(b => b !== btn && b.classList.add("out"));
     const r = btn.getBoundingClientRect(); sparkle(r.left + r.width / 2, r.top + r.height / 2, 12);
     S.right(); replay(card, "happy");
@@ -310,7 +373,7 @@
     if (id !== roundId) return;
     await addStar();
     if (id !== roundId) return;
-    if (stars >= GOAL) return party();
+    if (stars >= goal()) return party();
     await wait(300); if (id === roundId) newRound();
   }
   const cap = (s) => s[0].toUpperCase() + s.slice(1);
@@ -329,7 +392,14 @@
 
   function party() {
     $("party").classList.add("on");
-    const big = $("party").querySelector(".big"); big.style.animation = "none"; void big.offsetWidth; big.style.animation = "";
+    const big = $("party").querySelector(".big"), tap = $("party").querySelector(".tap");
+    if (mode === "colors") { big.textContent = "🏆"; tap.textContent = "tap to play more"; }
+    else { // Numbers and Animals win a sticker for the shelf on the start screen
+      const st = STICKERS[rnd(STICKERS.length)];
+      save.stickers.push(st); save.parties[mode] = (save.parties[mode] || 0) + 1; persist();
+      big.textContent = st; tap.textContent = "a new sticker! tap to play more";
+    }
+    big.style.animation = "none"; void big.offsetWidth; big.style.animation = "";
     S.fanfare(); confetti(30); setTimeout(() => confetti(20), 1200);
     say("voice/party");
     roundId++;
@@ -355,13 +425,18 @@
     roundId++; stopVoice(); S.pop(); mode = null;
     $("party").classList.remove("on");
     document.querySelectorAll(".mode").forEach(m => { m.style.animation = "none"; void m.offsetWidth; m.style.animation = ""; });
-    show("menu");
+    show("menu"); drawShelf();
+  }
+  function drawShelf() {
+    const st = save.stickers.slice(-9);
+    $("shelf").innerHTML = st.length ? st.map((x, i) => `<span style="animation-delay:${i * .06}s">${x}</span>`).join("")
+      : "<small>🎁 Win stickers in<br>Numbers and Animals!</small>";
   }
 
   document.querySelectorAll(".mode").forEach(el => el.addEventListener("pointerdown", () => start(el.dataset.m, el)));
   $("home").addEventListener("pointerdown", goHome);
   $("card").addEventListener("pointerdown", () => {
-    if (busy) return;
+    if (busy || hinting) return;
     ctx(); S.boing(); replay($("card"), "boing");
     const a = $("card").querySelector(".animal");
     if (mode === "animals" && a) { say("animal/" + answer.name); replay(a, "talk"); }
@@ -381,7 +456,7 @@
   window.addEventListener("scrollDown", () => menuMove(1));
   window.addEventListener("longPressEnd", () => { if (!mode) start(modes[menuSel].dataset.m, modes[menuSel]); });
 
-  bubbles(); drawStars(); preload(["voice/m_colors", "voice/m_numbers", "voice/m_animals"]);
+  bubbles(); drawShelf(); preload(["voice/m_colors", "voice/m_numbers", "voice/m_animals"]);
 })();
 </script>
 </body>
